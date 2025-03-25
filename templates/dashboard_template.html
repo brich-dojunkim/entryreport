@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>엔트리 셀러 인사이트 대시보드</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .dashboard-header {
+            background-color: #ffffff;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 0.25rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .dashboard-title {
+            margin: 0;
+            font-weight: 700;
+            color: #212529;
+        }
+        .dashboard-subtitle {
+            margin-top: 0.5rem;
+            color: #6c757d;
+        }
+        .chart-container {
+            background-color: #ffffff;
+            border-radius: 0.25rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            height: 100%;
+        }
+        .chart-title {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        .insight-box {
+            background-color: #e9f7fe;
+            border-radius: 0.25rem;
+            padding: 0.75rem;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+        }
+        .insight-title {
+            font-weight: 600;
+            margin-right: 0.5rem;
+            color: #0057b8;
+        }
+        .guide-container {
+            background-color: #f0f8ff;
+            border-radius: 0.25rem;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .guide-title {
+            color: #0057b8;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .guide-section {
+            background-color: #ffffff;
+            border-radius: 0.25rem;
+            padding: 1rem;
+            height: 100%;
+        }
+        .guide-section-title {
+            color: #0057b8;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+        }
+        .guide-list {
+            padding-left: 1.25rem;
+            margin-bottom: 0;
+        }
+        .guide-list li {
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container my-4">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">{{ title }}</h1>
+            <p class="dashboard-subtitle">{{ subtitle }}</p>
+        </div>
+
+        <div class="row">
+            <!-- 상품 유형 차트 -->
+            <div class="col-md-6 mb-4">
+                <div class="chart-container">
+                    <h3 class="chart-title">인기 상품 유형 TOP5</h3>
+                    <div id="product-chart" style="height: 350px;"></div>
+                    <div class="insight-box">
+                        <span class="insight-title">인사이트:</span>
+                        <span>{{ product_insight }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 색상 차트 -->
+            <div class="col-md-6 mb-4">
+                <div class="chart-container">
+                    <h3 class="chart-title">인기 색상 TOP5</h3>
+                    <div id="color-chart" style="height: 350px;"></div>
+                    <div class="insight-box">
+                        <span class="insight-title">인사이트:</span>
+                        <span>{{ color_insight }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 가격대 차트 -->
+            <div class="col-md-6 mb-4">
+                <div class="chart-container">
+                    <h3 class="chart-title">가격대별 상품 분포</h3>
+                    <div id="price-chart" style="height: 350px;"></div>
+                    <div class="insight-box">
+                        <span class="insight-title">인사이트:</span>
+                        <span>{{ price_insight }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 판매 채널 차트 -->
+            <div class="col-md-6 mb-4">
+                <div class="chart-container">
+                    <h3 class="chart-title">주요 판매 채널</h3>
+                    <div id="channel-chart" style="height: 350px;"></div>
+                    <div class="insight-box">
+                        <span class="insight-title">인사이트:</span>
+                        <span>{{ channel_insight }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 사이즈 분포 차트 -->
+            <div class="col-md-6 mb-4">
+                <div class="chart-container">
+                    <h3 class="chart-title">사이즈 분포</h3>
+                    <div id="size-chart" style="height: 350px;"></div>
+                    <div class="insight-box">
+                        <span class="insight-title">인사이트:</span>
+                        <span>{{ size_insight }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 소재 및 디자인 요소 차트 -->
+            <div class="col-md-6 mb-4">
+                <div class="chart-container">
+                    <h3 class="chart-title">인기 소재 & 디자인 요소</h3>
+                    <div id="material-design-chart" style="height: 350px;"></div>
+                    <div class="insight-box">
+                        <span class="insight-title">인사이트:</span>
+                        <span>{{ material_design_insight }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 베스트셀러 상품 차트 -->
+            <div class="col-md-12 mb-4">
+                <div class="chart-container">
+                    <h3 class="chart-title">베스트셀러 상품</h3>
+                    <div id="bestseller-chart" style="height: 350px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 실행 가이드 -->
+        <div class="guide-container">
+            <h2 class="guide-title">엔트리 셀러를 위한 핵심 실행 가이드</h2>
+            <div class="row">
+                <!-- 추천 상품 구성 -->
+                <div class="col-md-4 mb-3">
+                    <div class="guide-section">
+                        <h4 class="guide-section-title">추천 상품 구성</h4>
+                        <ul class="guide-list">
+                            {% for item in product_recommendations %}
+                            <li><strong>{{ item.name }}</strong> {{ item.description }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 채널 & 가격 전략 -->
+                <div class="col-md-4 mb-3">
+                    <div class="guide-section">
+                        <h4 class="guide-section-title">채널 & 가격 전략</h4>
+                        <ul class="guide-list">
+                            {% for item in channel_recommendations %}
+                            <li><strong>{{ item.name }}</strong> {{ item.description }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 핵심 키워드 -->
+                <div class="col-md-4 mb-3">
+                    <div class="guide-section">
+                        <h4 class="guide-section-title">핵심 키워드</h4>
+                        <ul class="guide-list">
+                            {% for item in keyword_recommendations %}
+                            <li><strong>{{ item.name }}</strong> {{ item.description }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 스크립트 -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script>
+        // 상품 유형 차트
+        const productData = {{ product_data|tojson }};
+        Plotly.newPlot('product-chart', [{
+            x: productData.map(d => d.value),
+            y: productData.map(d => d.name),
+            type: 'bar',
+            orientation: 'h',
+            marker: {
+                color: '#0088FE'
+            }
+        }], {
+            margin: { l: 120, r: 30, t: 30, b: 40 }
+        });
+
+        // 색상 차트
+        const colorData = {{ color_data|tojson }};
+        Plotly.newPlot('color-chart', [{
+            values: colorData.map(d => d.value),
+            labels: colorData.map(d => d.name),
+            type: 'pie',
+            hole: 0.4,
+            marker: {
+                colors: ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658']
+            },
+            textinfo: 'label+percent',
+            textposition: 'inside'
+        }], {
+            margin: { l: 20, r: 20, t: 30, b: 40 }
+        });
+
+        // 가격대 차트
+        const priceData = {{ price_data|tojson }};
+        Plotly.newPlot('price-chart', [{
+            x: priceData.map(d => d.name),
+            y: priceData.map(d => d.value),
+            type: 'bar',
+            marker: {
+                color: '#00C49F'
+            },
+            text: priceData.map(d => d.percent + '%'),
+            textposition: 'outside'
+        }], {
+            margin: { l: 50, r: 30, t: 30, b: 80 }
+        });
+
+        // 판매 채널 차트
+        const channelData = {{ channel_data|tojson }};
+        Plotly.newPlot('channel-chart', [{
+            x: channelData.map(d => d.name),
+            y: channelData.map(d => d.value),
+            type: 'bar',
+            marker: {
+                color: '#FFBB28'
+            }
+        }], {
+            margin: { l: 50, r: 30, t: 30, b: 80 }
+        });
+
+        // 사이즈 분포 차트
+        const sizeData = {{ size_data|tojson }};
+        Plotly.newPlot('size-chart', [{
+            values: sizeData.map(d => d.value),
+            labels: sizeData.map(d => d.name),
+            type: 'pie',
+            hole: 0.4,
+            marker: {
+                colors: ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8']
+            },
+            textinfo: 'label+percent',
+            textposition: 'inside'
+        }], {
+            margin: { l: 20, r: 20, t: 30, b: 40 }
+        });
+
+        // 소재 및 디자인 요소 차트
+        const materialDesignData = {{ material_design_data|tojson }};
+        Plotly.newPlot('material-design-chart', [{
+            x: materialDesignData.map(d => d.name),
+            y: materialDesignData.map(d => d.value),
+            type: 'bar',
+            marker: {
+                color: '#8884d8'
+            }
+        }], {
+            margin: { l: 50, r: 30, t: 30, b: 80 }
+        });
+
+        // 베스트셀러 상품 차트
+        const bestsellerData = {{ bestseller_data|tojson }};
+        Plotly.newPlot('bestseller-chart', [{
+            x: bestsellerData.map(d => d.value),
+            y: bestsellerData.map(d => d.name),
+            type: 'bar',
+            orientation: 'h',
+            marker: {
+                color: '#FF8042'
+            }
+        }], {
+            margin: { l: 300, r: 30, t: 30, b: 40 },
+            height: 400
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    {% if has_auto_keywords %}
+    <h2>자동 추출 키워드 분석</h2>
+    
+    {% if has_style_keywords %}
+    <h3>자동 추출 키워드</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>키워드 유형</th>
+                <th>추출된 키워드</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>스타일 키워드</td>
+                <td>{{ style_keywords|join(', ') }}</td>
+            </tr>
+            {% if has_product_keywords %}
+            <tr>
+                <td>상품 키워드</td>
+                <td>
+                    {% for item in product_keywords %}
+                    {% if loop.index0 > 0 %}, {% endif %}{{ item.keyword }}
+                    {% endfor %}
+                </td>
+            </tr>
+            {% endif %}
+            {% if has_color_groups %}
+            <tr>
+                <td>색상 그룹</td>
+                <td>
+                    {% for item in color_groups %}
+                    {% if loop.index0 > 0 %}, {% endif %}{{ item.color }}
+                    {% endfor %}
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+    
+    <h3>인사이트</h3>
+    <div class="auto-keywords">
+        <ul>
+            {% for insight in auto_insights %}
+            <li>{{ insight.text|safe }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    {% else %}
+    <h2>자동 추출 키워드 분석</h2>
+    <p>자동 추출 키워드 데이터가 부족합니다.</p>
+    {% endif %}
+    
+    <h2>엔트리 셀러 추천 전략</h2>
+    {% if has_strategy %}
+    
+    <h3>상품 구성 전략</h3>
+    <ul>
+        <li><strong>핵심 상품 유형</strong>: 
+            {% if has_auto_keywords and product_keywords is iterable and product_keywords is not string %}
+                {% for item in product_keywords %}
+                    {% if loop.index0 > 0 %}, {% endif %}
+                    {% if item is mapping and 'keyword' in item %}
+                        {{ item.keyword }}
+                    {% else %}
+                        {{ item }}
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                {{ product_keywords }}
+            {% endif %}
+        </li>
+        <li><strong>필수 색상</strong>: {{ colors }}</li>
+        <li><strong>추천 소재</strong>: {{ materials }}</li>
+        <li><strong>추천 디자인 요소</strong>: {{ designs }}</li>
+        {% if has_auto_keywords %}
+        <li><strong>추천 스타일 키워드</strong> (AI 자동 추출): {{ auto_style_keywords }}</li>
+        {% endif %}
+    </ul>
+    
+    <h3>가격 및 채널 전략</h3>
+    <ul>
+        <li><strong>주력 가격대</strong>: {{ main_price_range }} (전체의 {{ main_price_percent|round(1) }}%)</li>
+        {% if has_channels %}
+        <li><strong>진입 채널</strong>: {{ top_channels }}</li>
+        {% else %}
+        <li><strong>진입 채널</strong>: 데이터 없음</li>
+        {% endif %}
+    </ul>
+    
+    <h3>종합 전략 요약</h3>
+    <div class="strategy-box">
+        <ol>
+            {% for item in strategy_summary %}
+            <li>{{ item.point }}</li>
+            {% endfor %}
+        </ol>
+    </div>
+    
+    {% if has_recommended_products %}
+    <h3>추천 상품 구성</h3>
+    <div class="strategy-box">
+        <ul>
+            {% for product in recommended_products %}
+            <li class="product-rec">{{ product.index }}. <strong>{{ product.name }}</strong></li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <p>추천 전략을 위한 충분한 데이터가 없습니다.</p>
+    {% endif %}
+    
+    <footer style="text-align:center; margin-top:50px; padding:20px; border-top:1px solid #ddd; color:#777;">
+        © {{ current_year }} 엔트리 셀러 인사이트 - 생성일시: {{ timestamp }}
+    </footer>
+</body>
+</html><h2>가격대 분석</h2>
+    {% if price_data %}
+    <h3>가격대별 분포</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>가격대</th>
+                <th>상품 수</th>
+                <th>비율</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in price_data %}
+            <tr>
+                <td>{{ item.range }}</td>
+                <td>{{ item.count }}</td>
+                <td>{{ item.percent }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <h3>인사이트</h3>
+    <div class="insight-box">
+        <p>{{ price_insight }}</p>
+    </div>
+    {% else %}
+    <p>가격대 데이터가 부족합니다.</p>
+    {% endif %}
+    
+    <h2>판매 채널 분석</h2>
+    {% if channel_data %}
+    <h3>주요 판매 채널</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>채널</th>
+                <th>주문 수</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in channel_data %}
+            <tr>
+                <td>{{ item.channel }}</td>
+                <td>{{ item.count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <h3>인사이트</h3>
+    <div class="insight-box">
+        <p>{{ channel_insight }}</p>
+    </div>
+    
+    {% if channel_price_data %}
+    <h3>채널별 평균 가격</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>채널</th>
+                <th>평균 가격</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in channel_price_data %}
+            <tr>
+                <td>{{ item.channel }}</td>
+                <td>{{ item.price }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+    {% else %}
+    <p>판매 채널 데이터가 부족합니다.</p>
+    {% endif %}
+    
+    <h2>사이즈 분석</h2>
+    {% if sizes_data %}
+    <h3>인기 사이즈</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>사이즈</th>
+                <th>빈도</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in sizes_data %}
+            <tr>
+                <td>{{ item.name }}</td>
+                <td>{{ item.count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <h3>인사이트</h3>
+    <div class="insight-box">
+        <p>{{ size_insight }}</p>
+    </div>
+    {% else %}
+    <p>사이즈 데이터가 부족합니다.</p>
+    {% endif %}
+    
+    <h2>소재 및 디자인 분석</h2>
+    
+    {% if materials_data %}
+    <h3>인기 소재</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>소재</th>
+                <th>빈도</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in materials_data %}
+            <tr>
+                <td>{{ item.name }}</td>
+                <td>{{ item.count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <h3>인기 소재</h3>
+    <p>소재 데이터가 부족합니다.</p>
+    {% endif %}
+    
+    {% if designs_data %}
+    <h3>인기 디자인 요소</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>디자인 요소</th>
+                <th>빈도</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in designs_data %}
+            <tr>
+                <td>{{ item.name }}</td>
+                <td>{{ item.count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <h3>인기 디자인 요소</h3>
+    <p>디자인 요소 데이터가 부족합니다.</p>
+    {% endif %}
+    
+    {% if materials_data and designs_data %}
+    <h3>인사이트</h3>
+    <div class="insight-box">
+        <p>{{ material_design_insight }}</p>
+    </div>
+    {% endif %}
+    
+    <h2>베스트셀러 분석</h2>
+    {% if bestseller_data %}
+    <h3>상위 판매 상품</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>순위</th>
+                <th>상품명</th>
+                <th>주문 수</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in bestseller_data %}
+            <tr>
+                <td>{{ item.rank }}</td>
+                <td>{{ item.product }}</td>
+                <td>{{ item.count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <h3>인사이트</h3>
+    <div class="insight-box">
+        <ul>
+            <li><strong>베스트셀러 분석</strong>:</li>
+            {% for item in top3_bestsellers %}
+            <li>{{ item.rank }}위: {{ item.product }} ({{ item.count }}건)</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% else %}
+    <p>베스트셀러 데이터가 부족합니다.</p>
+    {% endif %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nanum Gothic', 'Malgun Gothic', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 25px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h3 {
+            color: #3498db;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #e9f7fe;
+        }
+        ul, ol {
+            margin-left: 20px;
+        }
+        li {
+            margin-bottom: 5px;
+        }
+        .insight-box {
+            background-color: #e9f7fe;
+            border-left: 5px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        .strategy-box {
+            background-color: #eafaf1;
+            border-left: 5px solid #2ecc71;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        .product-rec {
+            background-color: #fff8e1;
+            border: 1px solid #ffd54f;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .header-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+        .summary-table {
+            margin-top: 20px;
+        }
+        .auto-keywords {
+            background-color: #eff8ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px dashed #3498db;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+    <p>생성일시: {{ timestamp }}</p>
+    
+    <h2>분석 개요</h2>
+    <div class="header-info">
+        <h3>분석 데이터</h3>
+        <ul>
+            <li><strong>분석 기간</strong>: {{ period }}</li>
+            <li><strong>샘플 규모</strong>: 총 {{ "{:,}".format(total_orders) }}건의 주문 데이터</li>
+            <li><strong>대상 범위</strong>: 비플로우 플랫폼 내 모든 판매 채널의 주문 기록</li>
+        </ul>
+        
+        <h3>분석 방법론</h3>
+        <ol>
+            <li><strong>데이터 전처리</strong>: 데이터 결합 및 중복 제거, 불용어 제거</li>
+            <li><strong>주요 분석 영역</strong>: 카테고리, 상품 키워드, 색상, 소재, 사이즈, 판매 채널, 가격대</li>
+            <li><strong>텍스트 마이닝</strong>: TF-IDF 및 클러스터링을 통한 자동 키워드 추출</li>
+        </ol>
+    </div>
+    
+    <h2>핵심 인사이트 요약</h2>
+    <div class="summary-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>카테고리</th>
+                    <th>핵심 인사이트</th>
+                    <th>정량적 근거</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>상품군</td>
+                    <td>
+                        {% if product_keywords is iterable and product_keywords is not string %}
+                            {% for item in product_keywords %}
+                                {% if loop.index0 > 0 %}, {% endif %}
+                                {% if item is mapping and 'keyword' in item %}
+                                    {{ item.keyword }}
+                                {% else %}
+                                    {{ item }}
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            {{ product_keywords }}
+                        {% endif %}
+                    </td>
+                    <td>{{ product_insight }}</td>
+                </tr>
+                <tr>
+                    <td>가격대</td>
+                    <td>{{ price_range }}</td>
+                    <td>{{ price_insight }}</td>
+                </tr>
+                <tr>
+                    <td>판매채널</td>
+                    <td>{{ channels }}</td>
+                    <td>{{ channel_insight }}</td>
+                </tr>
+                <tr>
+                    <td>색상</td>
+                    <td>{{ colors }}</td>
+                    <td>{{ color_insight }}</td>
+                </tr>
+                <tr>
+                    <td>사이즈</td>
+                    <td>FREE 사이즈 중심</td>
+                    <td>{{ size_insight }}</td>
+                </tr>
+                {% if has_auto_keywords %}
+                <tr>
+                    <td>스타일 키워드</td>
+                    <td>{{ auto_style_keywords }}</td>
+                    <td>AI 자동 추출 키워드</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    
+    <h2>상품 유형 분석</h2>
+    {% if product_keywords_data %}
+    <h3>인기 상품 유형</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>키워드</th>
+                <th>빈도</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in product_keywords_data %}
+            <tr>
+                <td>{{ item.name }}</td>
+                <td>{{ item.count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <h3>인사이트</h3>
+    <div class="insight-box">
+        <p>{{ product_insight }}</p>
+    </div>
+    {% else %}
+    <p>상품 유형 데이터가 부족합니다.</p>
+    {% endif %}
+    
+    <h2>색상 분석</h2>
+    {% if colors_data %}
+    <h3>인기 색상</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>색상</th>
+                <th>빈도</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in colors_data %}
+            <tr>
+                <td>{{ item.name }}</td>
+                <td>{{ item.count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <h3>인사이트</h3>
+    <div class="insight-box">
+        <p>{{ color_insight }}</p>
+    </div>
+    {% else %}
+    <p>색상 데이터가 부족합니다.</p>
+    {% endif %}

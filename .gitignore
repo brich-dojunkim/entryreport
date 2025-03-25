@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Jupyter/IPython
+.ipynb_checkpoints
+
+# Virtual environment
+venv/
+.env/
+
+# Output files
+bflow_reports/
+
+# Excel files
+*.xlsx

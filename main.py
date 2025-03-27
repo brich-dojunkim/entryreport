@@ -9,7 +9,6 @@ from pathlib import Path
 from modules import create_analysis_workflow
 
 def main():
-    """비플로우 분석 시스템 메인 함수"""
     # 명령줄 인수 파싱
     parser = argparse.ArgumentParser(
         description='비플로우 주문 데이터 분석 및 보고서 생성',

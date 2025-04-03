@@ -1,7 +1,6 @@
 # modules/analyzer.py
 import pandas as pd
 import numpy as np
-import re
 from datetime import datetime
 from pathlib import Path
 from modules.config import Config
@@ -102,33 +101,18 @@ class BflowAnalyzer:
         
         return self.insights
     
-    # 나머지 분석 메소드들은 현재 코드를 유지하거나 약간의 개선을 할 수 있습니다.
-    # 예를 들어, Config 객체를 사용하도록 변경할 수 있습니다.
-    
     def analyze_channels(self):
         """판매 채널 분석"""
-        if '판매채널' not in self.df.columns:
-            self.insights['channels'] = {'counts': pd.Series(), 'top_channels': pd.Series()}
-            return
-            
-        # 채널별 주문 수 계산
-        channel_counts = self.df['판매채널'].value_counts()
-        
-        # 상위 5개 채널 선택
-        top_channels = channel_counts.head(5)
-        
-        # 전체 주문 중 상위 3개 채널의 비율 계산
-        top3_channels = channel_counts.head(3)
-        top3_ratio = (top3_channels.sum() / channel_counts.sum() * 100).round(1)
+        # 데이터 프로세서에 위임
+        channel_counts, top_channels, top3_ratio, top3_channel_list, channel_data = self.data_processor.get_channel_data()
         
         # 결과 저장
         self.insights['channels'] = {
             'counts': channel_counts,
             'top_channels': top_channels,
             'top3_ratio': top3_ratio,
-            'top3_channels': top3_channels.index.tolist(),
-            'channel_data': [{'name': channel, 'value': count} 
-                            for channel, count in top_channels.items()]
+            'top3_channels': top3_channel_list,
+            'channel_data': channel_data
         }
     
     def analyze_categories(self):
@@ -152,4 +136,170 @@ class BflowAnalyzer:
                             for cat, count in top_categories.items()]
         }
     
-    # 나머지 분석 메소드들도 필요한 경우 Config 객체 사용 등의 변경을 할 수 있습니다.
+    def analyze_product_attributes(self):
+        """상품 속성 분석 (키워드, 색상, 사이즈, 소재, 디자인 통합)"""
+        # 상품 키워드 분석
+        self.analyze_product_keywords()
+        
+        # 색상 분석
+        self.analyze_colors()
+        
+        # 사이즈 분석
+        self.analyze_sizes()
+        
+        # 소재 분석
+        self.analyze_materials()
+        
+        # 디자인 요소 분석
+        self.analyze_designs()
+    
+    def analyze_product_keywords(self):
+        """상품 키워드 분석"""
+        # 데이터 프로세서에 위임
+        top_keywords = self.data_processor.extract_product_keywords()
+        
+        # 결과 저장
+        self.insights['product_keywords'] = {
+            'top_keywords': top_keywords
+        }
+    
+    def analyze_colors(self):
+        """색상 분석"""
+        # 데이터 프로세서에 위임
+        top_colors = self.data_processor.extract_colors()
+        
+        # 데이터 포맷팅
+        colors_data = []
+        for color, count in top_colors:
+            colors_data.append({
+                'name': color,
+                'count': count,
+                'value': count  # 차트 데이터 포맷팅용
+            })
+        
+        # 결과 저장
+        self.insights['colors'] = {
+            'top_items': top_colors,
+            'colors_data': colors_data
+        }
+    
+    def analyze_sizes(self):
+        """사이즈 분석"""
+        # 데이터 프로세서에 위임
+        top_sizes, free_size_ratio = self.data_processor.extract_sizes()
+        
+        # 데이터 포맷팅
+        sizes_data = []
+        for size, count in top_sizes:
+            sizes_data.append({
+                'name': size,
+                'count': count,
+                'value': count  # 차트 데이터 포맷팅용
+            })
+        
+        # 결과 저장
+        self.insights['sizes'] = {
+            'top_items': top_sizes,
+            'free_size_ratio': free_size_ratio,
+            'sizes_data': sizes_data
+        }
+    
+    def analyze_materials(self):
+        """소재 분석"""
+        # 데이터 프로세서에 위임
+        top_materials = self.data_processor.extract_materials()
+        
+        # 데이터 포맷팅
+        materials_data = []
+        for material, count in top_materials:
+            materials_data.append({
+                'name': material,
+                'count': count,
+                'value': count  # 차트 데이터 포맷팅용
+            })
+        
+        # 결과 저장
+        self.insights['materials'] = {
+            'top_items': top_materials,
+            'materials_data': materials_data
+        }
+    
+    def analyze_designs(self):
+        """디자인 요소 분석"""
+        # 데이터 프로세서에 위임
+        top_designs = self.data_processor.extract_designs()
+        
+        # 데이터 포맷팅
+        designs_data = []
+        for design, count in top_designs:
+            designs_data.append({
+                'name': design,
+                'count': count,
+                'value': count  # 차트 데이터 포맷팅용
+            })
+        
+        # 결과 저장
+        self.insights['designs'] = {
+            'top_items': top_designs,
+            'designs_data': designs_data
+        }
+    
+    def analyze_price_ranges(self):
+        """가격대 분석"""
+        # 데이터 프로세서에 위임
+        price_counts, price_percent, price_data = self.data_processor.analyze_price_ranges()
+        
+        # 결과 저장
+        self.insights['price_ranges'] = {
+            'counts': price_counts,
+            'percent': price_percent,
+            'price_data': price_data
+        }
+    
+    def analyze_bestsellers(self):
+        """베스트셀러 상품 분석"""
+        # 데이터 프로세서에 위임
+        top_products, bestseller_data = self.data_processor.analyze_bestsellers()
+        
+        # 결과 저장
+        self.insights['bestsellers'] = {
+            'top_products': top_products,
+            'bestseller_data': bestseller_data
+        }
+    
+    def analyze_channel_prices(self):
+        """채널별 평균 가격 분석"""
+        # 데이터 프로세서에 위임
+        channel_prices = self.data_processor.analyze_channel_prices()
+        
+        # 결과 저장
+        self.insights['channel_prices'] = channel_prices
+    
+    def extract_auto_keywords(self):
+        """자동 키워드 추출"""
+        if self.df is None or len(self.df) == 0:
+            self.insights['auto_keywords'] = {}
+            return
+            
+        try:
+            # KeywordExtractor 인스턴스 생성
+            extractor = KeywordExtractor(self.df, self.config)
+            
+            # 스타일 키워드 추출
+            style_keywords = extractor.extract_style_keywords('상품명', n_clusters=5, n_keywords=3)
+            
+            # 추가 상품 키워드 추출
+            additional_keywords = extractor.extract_product_keywords('상품명', n_keywords=15)
+            
+            # 색상 그룹 추출
+            color_groups = extractor.extract_color_groups(n_clusters=4)
+            
+            # 결과 저장
+            self.insights['auto_keywords'] = {
+                'style_keywords': style_keywords,
+                'additional_product_keywords': additional_keywords,
+                'color_groups': color_groups
+            }
+        except Exception as e:
+            print(f"자동 키워드 추출 중 오류 발생: {e}")
+            self.insights['auto_keywords'] = {}

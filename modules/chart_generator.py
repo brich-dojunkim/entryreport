@@ -3,7 +3,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
 import numpy as np
-from modules.config import CHART_COLORS
+from modules.config import Config
 
 class ChartGenerator:
     """
@@ -11,7 +11,7 @@ class ChartGenerator:
     """
     
     # 기본 차트 색상을 config에서 가져온 값으로 설정
-    DEFAULT_COLORS = CHART_COLORS
+    DEFAULT_COLORS = Config().get_chart_colors()
     
     @staticmethod
     def create_chart(chart_type, data, colors=None):

@@ -1,7 +1,7 @@
 # modules/base_generator.py
 from pathlib import Path
 from datetime import datetime
-from modules.insights_formatter import InsightsFormatter
+from visualization.insights_formatter import InsightsFormatter
 
 class BaseGenerator:
     """

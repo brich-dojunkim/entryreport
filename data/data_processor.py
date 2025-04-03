@@ -14,7 +14,7 @@ class DataProcessor:
         Parameters:
         - config: 설정 객체
         """
-        from modules.config import Config
+        from config.config import Config
         self.config = config if config is not None else Config()
         self.df = None
         self.start_date = None

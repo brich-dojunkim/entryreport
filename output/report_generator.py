@@ -2,9 +2,9 @@ from pathlib import Path
 from datetime import datetime
 import pandas as pd
 from jinja2 import Environment, FileSystemLoader
-from modules.chart_generator import ChartGenerator
-from modules.insights_formatter import InsightsFormatter
-from modules.base_generator import BaseGenerator
+from visualization.chart_generator import ChartGenerator
+from visualization.insights_formatter import InsightsFormatter
+from output.base_generator import BaseGenerator
 from flask import Flask, render_template
 import threading
 import webbrowser

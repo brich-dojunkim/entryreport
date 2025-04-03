@@ -10,9 +10,9 @@ from jinja2 import Environment, FileSystemLoader
 from dash import Dash, html, dcc
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
-from modules.chart_generator import ChartGenerator
-from modules.base_generator import BaseGenerator
-from modules.utils import convert_to_serializable, safe_process_data
+from visualization.chart_generator import ChartGenerator
+from output.base_generator import BaseGenerator
+from utils.utils import convert_to_serializable, safe_process_data
 
 class DashboardGenerator(BaseGenerator):
     """비플로우 분석 결과를 바탕으로 대시보드 생성"""
@@ -32,7 +32,7 @@ class DashboardGenerator(BaseGenerator):
         
         # 설정 객체 설정
         if config is None:
-            from modules.config import Config
+            from config.config import Config
             self.config = Config()
         else:
             self.config = config

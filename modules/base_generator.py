@@ -8,12 +8,13 @@ class BaseGenerator:
     비플로우 분석 결과를 바탕으로 한 보고서 및 대시보드 생성의 기본 클래스
     """
     
-    def __init__(self, insights, output_folder='bflow_reports'):
+    def __init__(self, insights, formatter=None, output_folder='bflow_reports'):
         """
         생성기 초기화
         
         Parameters:
         - insights: BflowAnalyzer에서 생성한 분석 결과
+        - formatter: InsightsFormatter 인스턴스 (None이면 자동 생성)
         - output_folder: 결과물 저장 폴더
         """
         self.insights = insights
@@ -24,5 +25,6 @@ class BaseGenerator:
         self.now = datetime.now()
         self.timestamp = self.now.strftime("%Y%m%d_%H%M")
         
-        # 요약 정보 생성 (공통 모듈 활용)
-        self.summary = InsightsFormatter.get_summary(insights)
+        # InsightsFormatter 인스턴스 설정
+        self.formatter = formatter if formatter is not None else InsightsFormatter(insights)
+        self.summary = self.formatter.summary

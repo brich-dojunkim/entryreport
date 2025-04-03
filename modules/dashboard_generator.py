@@ -11,61 +11,45 @@ from dash import Dash, html, dcc
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 from modules.chart_generator import ChartGenerator
-from modules.insights_formatter import InsightsFormatter
 from modules.base_generator import BaseGenerator
+from modules.utils import convert_to_serializable, safe_process_data
 
 class DashboardGenerator(BaseGenerator):
     """비플로우 분석 결과를 바탕으로 대시보드 생성"""
     
-    def __init__(self, insights, output_folder='bflow_reports'):
+    def __init__(self, insights, formatter=None, output_folder='bflow_reports', config=None):
         """
         대시보드 생성기 초기화
         
         Parameters:
         - insights: BflowAnalyzer에서 생성한 분석 결과
+        - formatter: InsightsFormatter 인스턴스 (None이면 자동 생성)
         - output_folder: 결과물 저장 폴더
+        - config: 설정 객체 (None이면 기본 설정 사용)
         """
         # 부모 클래스 초기화
-        super().__init__(insights, output_folder)
+        super().__init__(insights, formatter, output_folder)
+        
+        # 설정 객체 설정
+        if config is None:
+            from modules.config import Config
+            self.config = Config()
+        else:
+            self.config = config
         
         # 템플릿 경로 설정
-        self.template_folder = Path('templates')
+        self.template_folder = Path(self.config.template_folder)
         
         # 디버깅 정보 출력
         print(f"DashboardGenerator 초기화 - insights 타입: {type(insights)}")
         print(f"DashboardGenerator 초기화 - summary 타입: {type(self.summary)}")
     
-    def _convert_to_serializable(self, data):
-        """
-        NumPy 타입과 같은 직렬화 불가능한 데이터를 표준 Python 타입으로 변환
-        
-        Parameters:
-        - data: 변환할 데이터
-        
-        Returns:
-        - 변환된 데이터
-        """
-        if isinstance(data, list):
-            return [self._convert_to_serializable(item) for item in data]
-        elif isinstance(data, dict):
-            return {key: self._convert_to_serializable(value) for key, value in data.items()}
-        elif isinstance(data, (np.int64, np.int32, np.int16, np.int8)):
-            return int(data)
-        elif isinstance(data, (np.float64, np.float32, np.float16)):
-            return float(data)
-        elif isinstance(data, np.bool_):
-            return bool(data)
-        elif isinstance(data, np.ndarray):
-            return self._convert_to_serializable(data.tolist())
-        else:
-            return data
-    
-    def generate_dashboard(self, port=8050, open_browser=True):
+    def generate_dashboard(self, port=None, open_browser=True):
         """
         대시보드 생성 및 실행
         
         Parameters:
-        - port: 대시보드 실행 포트
+        - port: 대시보드 실행 포트 (None이면 설정에서 가져옴)
         - open_browser: 브라우저 자동 실행 여부
         
         Returns:
@@ -74,137 +58,21 @@ class DashboardGenerator(BaseGenerator):
         print("대시보드 생성 중...")
         
         try:
+            # 포트 설정
+            if port is None:
+                port = self.config.dashboard_port
+                
             # 템플릿 변수 준비
-            template_vars = {
-                'title': '엔트리 셀러 인사이트 대시보드',
-                'subtitle': f'분석 기간: {self.insights.get("start_date", "알 수 없음")} ~ {self.insights.get("end_date", "알 수 없음")}'
-            }
-            
-            # 인사이트 텍스트 생성
-            template_vars['product_insight'] = InsightsFormatter.generate_insight_text(self.summary, 'product')
-            template_vars['color_insight'] = InsightsFormatter.generate_insight_text(self.summary, 'color')
-            template_vars['price_insight'] = InsightsFormatter.generate_insight_text(self.summary, 'price')
-            template_vars['channel_insight'] = InsightsFormatter.generate_insight_text(self.summary, 'channel')
-            template_vars['size_insight'] = InsightsFormatter.generate_insight_text(self.summary, 'size')
-            template_vars['material_design_insight'] = InsightsFormatter.generate_insight_text(self.summary, 'material_design')
-            
-            # 차트 데이터 형식화 (디버깅 추가)
-            try:
-                product_data = InsightsFormatter.format_table_data(self.insights, 'keywords')
-                print(f"product_data 추출: {len(product_data)} 항목")
-            except Exception as e:
-                print(f"product_data 추출 중 오류: {e}")
-                product_data = [{'name': '데이터 로드 오류', 'value': 0}]
-            
-            try:
-                color_data = InsightsFormatter.format_table_data(self.insights, 'colors')
-                print(f"color_data 추출: {len(color_data)} 항목")
-            except Exception as e:
-                print(f"color_data 추출 중 오류: {e}")
-                color_data = [{'name': '데이터 로드 오류', 'value': 1}]
-            
-            try:
-                price_data = InsightsFormatter.format_table_data(self.insights, 'prices')
-                print(f"price_data 추출: {len(price_data)} 항목")
-            except Exception as e:
-                print(f"price_data 추출 중 오류: {e}")
-                price_data = [{'name': '데이터 로드 오류', 'value': 0, 'percent': 0}]
-            
-            try:
-                channel_data = InsightsFormatter.format_table_data(self.insights, 'channels')
-                print(f"channel_data 추출: {len(channel_data)} 항목")
-            except Exception as e:
-                print(f"channel_data 추출 중 오류: {e}")
-                channel_data = [{'name': '데이터 로드 오류', 'value': 0}]
-            
-            try:
-                size_data = InsightsFormatter.format_table_data(self.insights, 'sizes')
-                print(f"size_data 추출: {len(size_data)} 항목")
-            except Exception as e:
-                print(f"size_data 추출 중 오류: {e}")
-                size_data = [{'name': '데이터 로드 오류', 'value': 1}]
-            
-            try:
-                # 소재와 디자인 데이터 합치기
-                material_data = InsightsFormatter.format_table_data(self.insights, 'materials')
-                design_data = InsightsFormatter.format_table_data(self.insights, 'designs')
-                material_design_data = material_data[:3] + design_data[:3]
-                print(f"material_design_data 추출: {len(material_design_data)} 항목")
-            except Exception as e:
-                print(f"material_design_data 추출 중 오류: {e}")
-                material_design_data = [{'name': '데이터 로드 오류', 'value': 0}]
-            
-            try:
-                bestseller_data = InsightsFormatter.format_table_data(self.insights, 'bestsellers')
-                print(f"bestseller_data 추출: {len(bestseller_data)} 항목")
-            except Exception as e:
-                print(f"bestseller_data 추출 중 오류: {e}")
-                bestseller_data = [{'name': '데이터 로드 오류', 'value': 0}]
-            
-            # 빈 데이터 필터링 및 기본값 설정
-            template_vars['product_data'] = product_data if product_data else [{'name': '데이터 없음', 'value': 0}]
-            template_vars['color_data'] = color_data if color_data else [{'name': '데이터 없음', 'value': 1}]
-            template_vars['price_data'] = price_data if price_data else [{'name': '데이터 없음', 'value': 0, 'percent': 0}]
-            template_vars['channel_data'] = channel_data if channel_data else [{'name': '데이터 없음', 'value': 0}]
-            template_vars['size_data'] = size_data if size_data else [{'name': '데이터 없음', 'value': 1}]
-            template_vars['material_design_data'] = material_design_data if material_design_data else [{'name': '데이터 없음', 'value': 0}]
-            template_vars['bestseller_data'] = bestseller_data if bestseller_data else [{'name': '데이터 없음', 'value': 0}]
+            template_vars = self._prepare_template_variables()
             
             # 모든 데이터를 직렬화 가능한 형식으로 변환
             for key in template_vars:
                 if key in ['product_data', 'color_data', 'price_data', 'channel_data', 
                         'size_data', 'material_design_data', 'bestseller_data']:
-                    template_vars[key] = self._convert_to_serializable(template_vars[key])
-            
-            # 실행 가이드 생성
-            guide = InsightsFormatter.get_execution_guide(self.summary)
-            
-            # 상품 추천
-            template_vars['product_recommendations'] = []
-            if guide and 'recommended_products' in guide:
-                for i, product in enumerate(guide['recommended_products'][:3]):
-                    template_vars['product_recommendations'].append({
-                        'name': f"{i+1}. {product}" if isinstance(product, str) else f"{i+1}. 추천 상품",
-                        'description': "인기 키워드 및 색상 조합"
-                    })
-            if not template_vars['product_recommendations']:
-                template_vars['product_recommendations'] = [{'name': '추천 상품 데이터 없음', 'description': ''}]
-            
-            # 채널 & 가격 전략 추천
-            template_vars['channel_recommendations'] = []
-            if guide and 'channels' in guide and len(guide['channels']) > 0:
-                for i, channel in enumerate(guide['channels'][:3]):
-                    price_text = f" {guide['main_price_range']}에 집중" if 'main_price_range' in guide else ""
-                    template_vars['channel_recommendations'].append({
-                        'name': f"{channel} 채널",
-                        'description': f"진입 중점 채널{price_text}"
-                    })
-            if not template_vars['channel_recommendations']:
-                template_vars['channel_recommendations'] = [{'name': '채널 전략 데이터 없음', 'description': ''}]
-            
-            # 키워드 추천
-            template_vars['keyword_recommendations'] = []
-            if guide:
-                if 'product_keywords' in guide and len(guide['product_keywords']) > 0:
-                    template_vars['keyword_recommendations'].append({
-                        'name': '상품 키워드',
-                        'description': ', '.join(guide['product_keywords'][:3])
-                    })
-                if 'color_keywords' in guide and len(guide['color_keywords']) > 0:
-                    template_vars['keyword_recommendations'].append({
-                        'name': '색상',
-                        'description': ', '.join(guide['color_keywords'][:3])
-                    })
-                if 'material_keywords' in guide and len(guide['material_keywords']) > 0:
-                    template_vars['keyword_recommendations'].append({
-                        'name': '소재',
-                        'description': ', '.join(guide['material_keywords'][:3])
-                    })
-            if not template_vars['keyword_recommendations']:
-                template_vars['keyword_recommendations'] = [{'name': '키워드 데이터 없음', 'description': ''}]
+                    template_vars[key] = convert_to_serializable(template_vars[key])
             
             # HTML 파일로 저장
-            env = Environment(loader=FileSystemLoader('templates'))
+            env = Environment(loader=FileSystemLoader(self.template_folder))
             template = env.get_template('dashboard_template.html')
             output = template.render(**template_vars)
             
@@ -225,3 +93,126 @@ class DashboardGenerator(BaseGenerator):
             import traceback
             traceback.print_exc()
             return None
+    
+    def _prepare_template_variables(self):
+        """템플릿 변수 준비"""
+        # 기본 정보
+        template_vars = {
+            'title': '엔트리 셀러 인사이트 대시보드',
+            'subtitle': f'분석 기간: {self.insights.get("start_date", "알 수 없음")} ~ {self.insights.get("end_date", "알 수 없음")}'
+        }
+        
+        # 인사이트 텍스트 생성
+        template_vars['product_insight'] = self.formatter.generate_insight_text('product')
+        template_vars['color_insight'] = self.formatter.generate_insight_text('color')
+        template_vars['price_insight'] = self.formatter.generate_insight_text('price')
+        template_vars['channel_insight'] = self.formatter.generate_insight_text('channel')
+        template_vars['size_insight'] = self.formatter.generate_insight_text('size')
+        template_vars['material_design_insight'] = self.formatter.generate_insight_text('material_design')
+        
+        # 차트 데이터 형식화 - safe_process_data 유틸리티 함수 사용
+        template_vars['product_data'] = safe_process_data(
+            self.formatter.format_table_data, 'keywords',
+            default_value=[{'name': '데이터 로드 오류', 'value': 0}],
+            error_message="product_data 추출 중 오류"
+        )
+        
+        template_vars['color_data'] = safe_process_data(
+            self.formatter.format_table_data, 'colors',
+            default_value=[{'name': '데이터 로드 오류', 'value': 1}],
+            error_message="color_data 추출 중 오류"
+        )
+        
+        template_vars['price_data'] = safe_process_data(
+            self.formatter.format_table_data, 'prices',
+            default_value=[{'name': '데이터 로드 오류', 'value': 0, 'percent': 0}],
+            error_message="price_data 추출 중 오류"
+        )
+        
+        template_vars['channel_data'] = safe_process_data(
+            self.formatter.format_table_data, 'channels',
+            default_value=[{'name': '데이터 로드 오류', 'value': 0}],
+            error_message="channel_data 추출 중 오류"
+        )
+        
+        template_vars['size_data'] = safe_process_data(
+            self.formatter.format_table_data, 'sizes',
+            default_value=[{'name': '데이터 로드 오류', 'value': 1}],
+            error_message="size_data 추출 중 오류"
+        )
+        
+        # 소재와 디자인 데이터 합치기
+        try:
+            material_data = self.formatter.format_table_data('materials')
+            design_data = self.formatter.format_table_data('designs')
+            material_design_data = material_data[:3] + design_data[:3]
+            print(f"material_design_data 추출: {len(material_design_data)} 항목")
+        except Exception as e:
+            print(f"material_design_data 추출 중 오류: {e}")
+            material_design_data = [{'name': '데이터 로드 오류', 'value': 0}]
+        
+        template_vars['material_design_data'] = material_design_data
+        
+        template_vars['bestseller_data'] = safe_process_data(
+            self.formatter.format_table_data, 'bestsellers',
+            default_value=[{'name': '데이터 로드 오류', 'value': 0}],
+            error_message="bestseller_data 추출 중 오류"
+        )
+        
+        # 빈 데이터 필터링 및 기본값 설정
+        template_vars['product_data'] = template_vars['product_data'] if template_vars['product_data'] else [{'name': '데이터 없음', 'value': 0}]
+        template_vars['color_data'] = template_vars['color_data'] if template_vars['color_data'] else [{'name': '데이터 없음', 'value': 1}]
+        template_vars['price_data'] = template_vars['price_data'] if template_vars['price_data'] else [{'name': '데이터 없음', 'value': 0, 'percent': 0}]
+        template_vars['channel_data'] = template_vars['channel_data'] if template_vars['channel_data'] else [{'name': '데이터 없음', 'value': 0}]
+        template_vars['size_data'] = template_vars['size_data'] if template_vars['size_data'] else [{'name': '데이터 없음', 'value': 1}]
+        template_vars['material_design_data'] = material_design_data if material_design_data else [{'name': '데이터 없음', 'value': 0}]
+        template_vars['bestseller_data'] = template_vars['bestseller_data'] if template_vars['bestseller_data'] else [{'name': '데이터 없음', 'value': 0}]
+        
+        # 실행 가이드 생성
+        guide = self.formatter.get_execution_guide()
+        
+        # 상품 추천
+        template_vars['product_recommendations'] = []
+        if guide and 'recommended_products' in guide:
+            for i, product in enumerate(guide['recommended_products'][:3]):
+                template_vars['product_recommendations'].append({
+                    'name': f"{i+1}. {product}" if isinstance(product, str) else f"{i+1}. 추천 상품",
+                    'description': "인기 키워드 및 색상 조합"
+                })
+        if not template_vars['product_recommendations']:
+            template_vars['product_recommendations'] = [{'name': '추천 상품 데이터 없음', 'description': ''}]
+        
+        # 채널 & 가격 전략 추천
+        template_vars['channel_recommendations'] = []
+        if guide and 'channels' in guide and len(guide['channels']) > 0:
+            for i, channel in enumerate(guide['channels'][:3]):
+                price_text = f" {guide['main_price_range']}에 집중" if 'main_price_range' in guide else ""
+                template_vars['channel_recommendations'].append({
+                    'name': f"{channel} 채널",
+                    'description': f"진입 중점 채널{price_text}"
+                })
+        if not template_vars['channel_recommendations']:
+            template_vars['channel_recommendations'] = [{'name': '채널 전략 데이터 없음', 'description': ''}]
+        
+        # 키워드 추천
+        template_vars['keyword_recommendations'] = []
+        if guide:
+            if 'product_keywords' in guide and len(guide['product_keywords']) > 0:
+                template_vars['keyword_recommendations'].append({
+                    'name': '상품 키워드',
+                    'description': ', '.join(guide['product_keywords'][:3])
+                })
+            if 'color_keywords' in guide and len(guide['color_keywords']) > 0:
+                template_vars['keyword_recommendations'].append({
+                    'name': '색상',
+                    'description': ', '.join(guide['color_keywords'][:3])
+                })
+            if 'material_keywords' in guide and len(guide['material_keywords']) > 0:
+                template_vars['keyword_recommendations'].append({
+                    'name': '소재',
+                    'description': ', '.join(guide['material_keywords'][:3])
+                })
+        if not template_vars['keyword_recommendations']:
+            template_vars['keyword_recommendations'] = [{'name': '키워드 데이터 없음', 'description': ''}]
+        
+        return template_vars

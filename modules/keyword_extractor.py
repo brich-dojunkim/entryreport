@@ -2,20 +2,89 @@ from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.cluster import KMeans
 import pandas as pd
 import numpy as np
-import re
+from modules.utils import clean_text, extract_keywords, safe_process_data
 
 class KeywordExtractor:
     """상품 데이터에서 자동으로 키워드를 추출하는 클래스"""
     
-    def __init__(self, df):
+    def __init__(self, df, config=None):
+        """
+        Parameters:
+        - df: 분석할 데이터프레임
+        - config: 설정 객체
+        """
         self.df = df
         
+        # 설정 객체 설정
+        if config is None:
+            from modules.config import Config
+            self.config = Config()
+        else:
+            self.config = config
+    
     def extract_product_keywords(self, column='상품명', n_keywords=10):
         """TF-IDF를 이용한 중요 키워드 추출"""
         # 결측치 제거 및 텍스트 전처리
-        texts = self.df[column].dropna().astype(str)
-        texts = texts.apply(self._preprocess_text)
+        texts = self._prepare_texts(column)
+        if not texts or len(texts) == 0:
+            return []
         
+        # TF-IDF 벡터화 및 키워드 추출
+        return safe_process_data(
+            self._extract_tfidf_keywords, 
+            texts, n_keywords,
+            default_value=[],
+            error_message=f"{column} 키워드 추출 중 오류"
+        )
+    
+    def extract_style_keywords(self, column='상품명', n_clusters=5, n_keywords=3):
+        """클러스터링을 통한 스타일 키워드 자동 추출"""
+        # 결측치 제거 및 텍스트 전처리
+        texts = self._prepare_texts(column)
+        if not texts or len(texts) == 0:
+            return []
+        
+        # 클러스터링 및 키워드 추출
+        return safe_process_data(
+            self._extract_cluster_keywords, 
+            texts, n_clusters, n_keywords,
+            default_value=[],
+            error_message=f"{column} 스타일 키워드 추출 중 오류"
+        )
+    
+    def extract_color_groups(self, n_clusters=4):
+        """색상 데이터 클러스터링을 통한 색상 그룹 추출"""
+        if '옵션정보' not in self.df.columns:
+            return []
+            
+        # 색상 데이터 추출 (옵션정보에서 색상 정보 추출)
+        option_texts = self.df['옵션정보'].dropna().astype(str)
+        
+        # 색상 키워드 추출을 위한 패턴
+        color_patterns = '|'.join(self.config.get_product_attributes('colors'))
+        
+        return safe_process_data(
+            self._extract_color_groups, 
+            option_texts, color_patterns,
+            default_value=[],
+            error_message="색상 그룹 추출 중 오류"
+        )
+    
+    def _prepare_texts(self, column):
+        """텍스트 데이터 준비 및 전처리"""
+        if column not in self.df.columns:
+            return []
+            
+        texts = self.df[column].dropna().astype(str)
+        return texts.apply(self._preprocess_text)
+    
+    def _preprocess_text(self, text):
+        """텍스트 전처리"""
+        # utils.clean_text 사용
+        return clean_text(text, self.config.get_stop_words())
+    
+    def _extract_tfidf_keywords(self, texts, n_keywords=10):
+        """TF-IDF로 키워드 추출"""
         # TF-IDF 벡터화
         tfidf = TfidfVectorizer(
             max_features=100, 
@@ -34,12 +103,8 @@ class KeywordExtractor:
         
         return top_keywords
     
-    def extract_style_keywords(self, column='상품명', n_clusters=5, n_keywords=3):
-        """클러스터링을 통한 스타일 키워드 자동 추출"""
-        # 결측치 제거 및 텍스트 전처리
-        texts = self.df[column].dropna().astype(str)
-        texts = texts.apply(self._preprocess_text)
-        
+    def _extract_cluster_keywords(self, texts, n_clusters=5, n_keywords=3):
+        """클러스터링을 통한 키워드 추출"""
         # 용어 빈도수 벡터화
         count_vec = CountVectorizer(max_features=200, min_df=3)
         term_matrix = count_vec.fit_transform(texts)
@@ -69,17 +134,9 @@ class KeywordExtractor:
         
         return flattened_keywords
     
-    def extract_color_groups(self, n_clusters=4):
-        """색상 데이터 클러스터링을 통한 색상 그룹 추출"""
-        if '옵션정보' not in self.df.columns:
-            return []
-            
-        # 색상 데이터 추출 (옵션정보에서 색상 정보 추출)
-        option_texts = self.df['옵션정보'].dropna().astype(str)
-        
-        # 색상 키워드 추출을 위한 패턴
-        from modules.config import PRODUCT_ATTRIBUTES
-        color_patterns = '|'.join(PRODUCT_ATTRIBUTES['colors'])
+    def _extract_color_groups(self, option_texts, color_patterns):
+        """옵션 텍스트에서 색상 그룹 추출"""
+        import re
         color_regex = re.compile(r'(' + color_patterns + r')', re.IGNORECASE)
         
         # 색상 추출 및 빈도 계산
@@ -94,18 +151,3 @@ class KeywordExtractor:
         top_colors = color_counts.head(20)
         
         return [(color, count) for color, count in top_colors.items()]
-    
-    def _preprocess_text(self, text):
-        """텍스트 전처리"""
-        # 소문자 변환
-        text = text.lower()
-        
-        # 불용어 제거 (기존 STOP_WORDS 사용)
-        from modules.config import STOP_WORDS
-        for word in STOP_WORDS:
-            text = text.replace(word.lower(), ' ')
-        
-        # 추가 전처리 (특수문자 제거 등)
-        text = re.sub(r'[^\w\s가-힣]', ' ', text)
-        
-        return text

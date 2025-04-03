@@ -13,15 +13,16 @@ import time
 class ReportGenerator(BaseGenerator):
     """비플로우 분석 결과를 바탕으로 HTML 리포트 생성"""
     
-    def __init__(self, insights, output_folder='bflow_reports'):
+    def __init__(self, insights, formatter=None, output_folder='bflow_reports'):
         """
         리포트 생성기 초기화
         
         Parameters:
         - insights: BflowAnalyzer에서 생성한 분석 결과
+        - formatter: InsightsFormatter 인스턴스 (None이면 자동 생성)
         - output_folder: 결과물 저장 폴더
         """
-        super().__init__(insights, output_folder)
+        super().__init__(insights, formatter, output_folder)
         
         # 차트 저장 폴더 생성 (리포트 전용)
         self.chart_folder = self.output_folder / 'charts'
@@ -297,7 +298,7 @@ class ReportGenerator(BaseGenerator):
         
         # 인사이트 텍스트 추가
         for section in ['product', 'color', 'price', 'channel', 'size', 'material_design']:
-            analysis_vars[f'{section}_insight'] = InsightsFormatter.generate_insight_text(self.summary, section)
+            analysis_vars[f'{section}_insight'] = self.formatter.generate_insight_text(section)
         
         return analysis_vars
     
@@ -335,7 +336,7 @@ class ReportGenerator(BaseGenerator):
         strategy_vars = {}
         
         # 실행 가이드 생성
-        guide = InsightsFormatter.get_execution_guide(self.summary)
+        guide = self.formatter.get_execution_guide()
         
         if not guide:
             strategy_vars['has_strategy'] = False

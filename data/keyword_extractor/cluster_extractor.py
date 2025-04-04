@@ -47,7 +47,7 @@ class ClusterExtractor:
                     cluster_keywords = [feature_names[idx] for idx in top_indices]
                     style_keywords.append(cluster_keywords)
 
-            # 2차원 리스트를 1차원으로
+            # 2차원 리스트를 1차원으로 펴기
             flattened_keywords = [kw for cluster in style_keywords for kw in cluster]
             return flattened_keywords
         except Exception as e:

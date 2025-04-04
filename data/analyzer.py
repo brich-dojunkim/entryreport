@@ -1,3 +1,4 @@
+# data/analyzer.py
 import pandas as pd
 from datetime import datetime
 from config.config import Config
@@ -63,11 +64,11 @@ class BflowAnalyzer:
             self._analyze_categories()
             
             # 3. 상품 속성 분석
-            # 수정: product_keywords를 반드시 dict 형태로 반환
             self.insights['product_keywords'] = {
                 'top_keywords': self.data_processor.extract_product_keywords()
             }
             self.insights['colors'] = self._format_items(self.data_processor.extract_colors())
+            
             sizes, free_size_ratio = self.data_processor.extract_sizes()
             self.insights['sizes'] = {
                 'top_items': sizes,
@@ -108,40 +109,77 @@ class BflowAnalyzer:
     def _analyze_categories(self):
         """카테고리 분석 (추가 처리)"""
         if '상품 카테고리' not in self.df.columns:
-            self.insights['categories'] = {'counts': pd.Series(), 'top_categories': pd.Series()}
+            # 빈 Series를 넣는 것은 문제 없음
+            self.insights['categories'] = {
+                'counts': pd.Series(dtype=int),
+                'top_categories': pd.Series(dtype=int)
+            }
             return
+        
         category_counts = self.df['상품 카테고리'].value_counts()
         top_categories = category_counts.head(10)
         self.insights['categories'] = {
             'counts': category_counts,
             'top_categories': top_categories,
             'mapping': self.config.CATEGORY_MAPPING,
-            'category_data': [{'name': self.config.get_category_name(cat), 'id': cat, 'value': count} 
-                              for cat, count in top_categories.items()]
+            'category_data': [
+                {
+                    'name': self.config.get_category_name(cat),
+                    'id': cat,
+                    'value': count
+                } 
+                for cat, count in top_categories.items()
+            ]
         }
     
     def _format_items(self, items):
-        """리스트 형식의 (이름, 개수) 튜플을 차트용 포맷(딕셔너리 리스트)으로 변환"""
+        """
+        리스트 형식의 (이름, 개수) 튜플을
+        차트용 포맷(딕셔너리 리스트)으로 변환
+        """
         formatted = []
         for name, count in items:
             formatted.append({'name': name, 'count': count, 'value': count})
         return formatted
     
     def _extract_auto_keywords(self):
-        """자동 키워드 추출 (KeywordExtractor 활용)"""
+        """
+        자동 키워드 추출 (KeywordExtractor 활용)
+        """
         if self.df is None or self.df.empty:
             self.insights['auto_keywords'] = {}
             return
+        
         try:
             extractor = KeywordExtractor(self.df, self.config)
-            style_keywords = extractor.extract_style_keywords('상품명', n_clusters=5, n_keywords=3)
-            additional_keywords = extractor.extract_product_keywords('상품명', n_keywords=15)
-            color_groups = extractor.extract_color_groups(n_clusters=4)
+            
+            # 스타일 키워드
+            style_keywords = extractor.extract_style_keywords(
+                column='상품명',
+                n_clusters=5,
+                n_keywords=3
+            )
+            # 상품 키워드
+            additional_keywords = extractor.extract_product_keywords(
+                column='상품명',
+                n_keywords=15
+            )
+            # 색상 그룹 (원본 코드에서 n_clusters=4였지만, 
+            # keyword_extractor.py에선 파라미터가 없으므로 제거/수정)
+            color_groups = extractor.extract_color_groups()
+            
             self.insights['auto_keywords'] = {
                 'style_keywords': style_keywords,
                 'additional_product_keywords': additional_keywords,
                 'color_groups': color_groups
             }
+            
+            # 디버깅용 출력
+            print("[디버그] 자동 키워드 추출 결과:")
+            print("style_keywords:", style_keywords)
+            print("additional_product_keywords:", additional_keywords)
+            print("color_groups:", color_groups)
+            
         except Exception as e:
             print(f"자동 키워드 추출 중 오류 발생: {e}")
             self.insights['auto_keywords'] = {}

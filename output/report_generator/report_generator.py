@@ -1,21 +1,17 @@
 # output/report_generator/report_generator.py
 """
-비플로우 분석 결과를 바탕으로 HTML 리포트를 생성하는 메인 클래스
+비플로우 분석 결과를 바탕으로 HTML 리포트를 생성하는 메인 클래스 (간소화 버전)
 """
 from pathlib import Path
 from flask import Flask, render_template
 from datetime import datetime
 from output.base_generator import BaseGenerator
 
-# DashboardGenerator에서 'DashboardDataProcessor'를 썼듯이,
-# 여기서는 'ReportDataProcessor'를 만들어 데이터를 통합 처리함
 from output.report_generator.data_processor.data_processor import ReportDataProcessor
-
-# 템플릿 렌더링 클래스
 from output.report_generator.template_handler import TemplateHandler
 
 class ReportGenerator(BaseGenerator):
-    """비플로우 분석 결과를 바탕으로 HTML 리포트 생성"""
+    """비플로우 분석 결과를 바탕으로 HTML 리포트 생성 (간소화 버전)"""
 
     def __init__(self, insights, formatter=None, output_folder='bflow_reports'):
         """
@@ -26,39 +22,29 @@ class ReportGenerator(BaseGenerator):
         - formatter: InsightsFormatter 인스턴스 (None이면 자동 생성)
         - output_folder: 결과물 저장 폴더
         """
-        # 부모 클래스(BaseGenerator) 초기화
         super().__init__(insights, formatter, output_folder)
-
-        # 차트 저장 폴더 생성 (리포트 전용)
         self.chart_folder = self.output_folder / 'charts'
         self.chart_folder.mkdir(exist_ok=True)
-
-        # 템플릿 폴더 (예: 프로젝트 루트 내 templates/)
         self.template_folder = Path('templates')
 
-        # 데이터 프로세서 & 템플릿 핸들러 생성
         self.data_processor = ReportDataProcessor(insights, formatter)
         self.template_handler = TemplateHandler(self.template_folder)
 
     def generate_html_report(self):
         """
-        HTML 리포트 생성
-        
-        Returns:
-        - 생성된 HTML 리포트 파일 경로
+        HTML 리포트 생성 (간소화 버전)
         """
-        print("HTML 리포트 생성 중...")
-
+        print("간소화된 HTML 리포트를 생성합니다...")
         html_file = self.output_folder / f"bflow_report_{self.timestamp}.html"
 
         try:
-            # 템플릿 변수 준비 (data_processor 이용)
+            # 템플릿 변수 준비
             template_vars = self.data_processor.prepare_template_variables(
                 now=self.now,
                 summary=self.summary
             )
 
-            # 템플릿 렌더링
+            # 템플릿 렌더링 (간소화 템플릿)
             output_html = self.template_handler.render_template(
                 'report_template.html',
                 **template_vars
@@ -81,24 +67,15 @@ class ReportGenerator(BaseGenerator):
 
     def generate_web_report(self, port=8051, open_browser=True):
         """
-        웹 서버를 사용하여 인터랙티브 HTML 리포트 생성
-        
-        Parameters:
-        - port: 웹 서버 포트 번호
-        - open_browser: 브라우저 자동 실행 여부 (main.py에서 처리하므로 무시됨)
-        
-        Returns:
-        - 생성된 웹 서버 URL
+        웹 서버로 인터랙티브 HTML 리포트 표시 (간소화 버전)
         """
         print(f"웹 리포트 서버 시작 중... (포트: {port})")
 
-        # 템플릿 변수 준비
         template_vars = self.data_processor.prepare_template_variables(
             now=self.now,
             summary=self.summary
         )
 
-        # Flask 앱 생성
         app = Flask(__name__,
                     template_folder=str(self.template_folder),
                     static_folder=str(self.chart_folder))
@@ -117,7 +94,6 @@ class ReportGenerator(BaseGenerator):
     def generate_markdown_report(self):
         """
         레거시 메소드 - 마크다운 리포트 생성
-        (실제로는 HTML 리포트를 대신 생성)
         """
-        print("마크다운 리포트 생성은 더 이상 지원되지 않습니다. HTML 리포트를 생성합니다.")
+        print("마크다운 리포트 생성 대신 HTML 리포트를 생성합니다. (간소화 버전)")
         return self.generate_html_report()

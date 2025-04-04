@@ -1,4 +1,4 @@
-# modules/config.py
+# config/config.py
 """
 비플로우 분석 시스템의 설정 관리 모듈
 """

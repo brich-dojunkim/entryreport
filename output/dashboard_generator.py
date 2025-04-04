@@ -1,3 +1,4 @@
+# output/dashboard_generator.py
 import webbrowser
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
@@ -92,13 +93,13 @@ class DashboardGenerator(BaseGenerator):
             'subtitle': f'분석 기간: {self.insights.get("start_date", "알 수 없음")} ~ {self.insights.get("end_date", "알 수 없음")}'
         }
         
-        # 인사이트 텍스트 생성
+        # 인사이트 텍스트 생성 (수정된 접근 방식 사용)
         template_vars['product_insight'] = self.formatter.generate_insight_text('product')
         template_vars['color_insight'] = self.formatter.generate_insight_text('color')
         template_vars['price_insight'] = self.formatter.generate_insight_text('price')
         template_vars['channel_insight'] = self.formatter.generate_insight_text('channel')
         template_vars['size_insight'] = self.formatter.generate_insight_text('size')
-        template_vars['material_design_insight'] = self.formatter.generate_insight_text('material_design')
+        template_vars['material_design_insight'] = self.formatter.generate_insight_text('material_design')   
         
         # 차트 데이터 형식화 - safe_process_data 유틸리티 함수 사용
         template_vars['product_data'] = safe_process_data(

@@ -1,4 +1,4 @@
-# data/sales_analyzer.py
+# data/data_processor/sales_analyzer.py
 import pandas as pd
 from config.config import Config
 

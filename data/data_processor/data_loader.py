@@ -1,4 +1,4 @@
-# data/data_loader.py
+# data/data_processor/data_loader.py
 import pandas as pd
 from config.config import Config
 
@@ -15,13 +15,12 @@ class DataLoader:
         self.start_date = None
         self.end_date = None
     
-    def load_data(self, file_path1, file_path2=None):
+    def load_data(self, file_path):
         """
         데이터 로드 및 기본 전처리
         
         Parameters:
-        - file_path1: 첫 번째 엑셀 파일 경로
-        - file_path2: 두 번째 엑셀 파일 경로 (선택사항)
+        - file_path: 엑셀 파일 경로
         
         Returns:
         - 전처리된 데이터프레임
@@ -29,15 +28,8 @@ class DataLoader:
         print("데이터 로드 및 전처리 중...")
         
         try:
-            # 첫 번째 파일 로드
-            df1 = pd.read_excel(file_path1)
-            
-            # 두 번째 파일이 있으면 로드 후 결합
-            if file_path2:
-                df2 = pd.read_excel(file_path2)
-                self.df = pd.concat([df1, df2], ignore_index=True)
-            else:
-                self.df = df1
+            # 단일 파일 로드
+            self.df = pd.read_excel(file_path)
             
             # 기본 전처리 수행
             self._preprocess_data()

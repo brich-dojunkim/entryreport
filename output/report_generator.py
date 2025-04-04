@@ -1,3 +1,4 @@
+# output/report_generator.py
 from pathlib import Path
 from datetime import datetime
 from jinja2 import Environment, FileSystemLoader
@@ -132,8 +133,9 @@ class ReportGenerator(BaseGenerator):
         # 상품군 정보
         if 'top_keywords' in self.summary and len(self.summary['top_keywords']) >= 3:
             kw = self.summary['top_keywords']
-            product_insight = f"{kw[0][0]}({kw[0][1]}건), {kw[1][0]}({kw[1][1]}건), {kw[2][0]}({kw[2][1]}건)"
-            product_keywords = ', '.join([k[0] for k in kw[:3]])
+            # 기존: kw[0][0] -> 수정: kw[0]['name']
+            product_insight = f"{kw[0]['name']}({kw[0]['count']}건), {kw[1]['name']}({kw[1]['count']}건), {kw[2]['name']}({kw[2]['count']}건)"
+            product_keywords = ', '.join([item['name'] for item in kw[:3]])
         else:
             product_insight = "데이터 부족"
             product_keywords = "데이터 부족"
@@ -163,12 +165,13 @@ class ReportGenerator(BaseGenerator):
         summary_vars['channel_insight'] = channel_insight
         summary_vars['channels'] = channels
         
-        # 색상 정보
+        # 색상 정보 (딕셔너리 리스트 기준)
         if 'top_colors' in self.summary and len(self.summary['top_colors']) >= 3:
-            color_insight = f"{self.summary['top_colors'][0][0]}({self.summary['top_colors'][0][1]}건), " + \
-                           f"{self.summary['top_colors'][1][0]}({self.summary['top_colors'][1][1]}건), " + \
-                           f"{self.summary['top_colors'][2][0]}({self.summary['top_colors'][2][1]}건)"
-            colors = ', '.join([c[0] for c in self.summary['top_colors'][:3]])
+            # 수정: kw[0][0] → kw[0]['name']
+            color_insight = (f"{self.summary['top_colors'][0]['name']}({self.summary['top_colors'][0]['count']}건), " +
+                            f"{self.summary['top_colors'][1]['name']}({self.summary['top_colors'][1]['count']}건), " +
+                            f"{self.summary['top_colors'][2]['name']}({self.summary['top_colors'][2]['count']}건)")
+            colors = ', '.join([item['name'] for item in self.summary['top_colors'][:3]])
         else:
             color_insight = "데이터 부족"
             colors = "데이터 부족"
@@ -176,7 +179,7 @@ class ReportGenerator(BaseGenerator):
         summary_vars['color_insight'] = color_insight
         summary_vars['colors'] = colors
         
-        # 사이즈 정보
+        # 사이즈 정보는 기존 방식과 유사 (여기서는 딕셔너리 리스트가 아닌 경우도 고려)
         if 'free_size_ratio' in self.summary:
             size_insight = f"FREE 사이즈가 전체의 {self.summary['free_size_ratio']:.1f}%"
         else:
@@ -328,100 +331,104 @@ class ReportGenerator(BaseGenerator):
     def _prepare_strategy_variables(self):
         """전략 추천 변수 준비"""
         strategy_vars = {}
-        
+
         # 실행 가이드 생성
         guide = self.formatter.get_execution_guide()
-        
         if not guide:
             strategy_vars['has_strategy'] = False
             return strategy_vars
-        
+
         strategy_vars['has_strategy'] = True
-        
-        # 키워드 추출
-        keywords = [kw for kw, _ in self.summary.get('top_keywords', [])[:3]]
-        colors = [color for color, _ in guide.get('top_colors', [])[:3]]
+
+        # 수정: product_keywords 딕셔너리 리스트 기반으로 'name' 키 사용
+        keywords = [kw['name'] for kw in self.summary.get('top_keywords', [])[:3]]
+        colors = [item['name'] for item in self.summary.get('top_colors', [])[:3]]
         materials = guide.get('material_keywords', [])
         designs = guide.get('design_keywords', [])
+
+        # 자동 추출 스타일 키워드 (문자열 리스트라고 가정)
+        auto_style_keywords = self.summary.get('auto_style_keywords', [])
         
-        # 자동 추출 스타일 키워드
-        auto_style_keywords = guide.get('auto_style_keywords', [])
+        # 자동 스타일 키워드를 활용한 상품 추천
+        recommended_products = []
+        if auto_style_keywords and keywords:
+            for i in range(min(3, len(auto_style_keywords), len(keywords))):
+                style = auto_style_keywords[i]
+                product = keywords[i]
+                recommended_products.append(f"{style} {product}")
+        if not recommended_products and materials and designs and keywords:
+            recommended_products.append(f"{designs[0]} {materials[0] if materials else ''} {keywords[0]}")
+            if len(keywords) > 1 and len(designs) > 1:
+                recommended_products.append(f"{designs[1]} {keywords[1]}")
+            if len(keywords) > 2 and len(designs) > 2:
+                recommended_products.append(f"{designs[2]} {keywords[2]}")
         
-        # 자동 추출 상품 키워드
-        auto_product_keywords = guide.get('auto_product_keywords', [])
+        # 베스트셀러 처리 (이 부분은 기존 구조에 따라 튜플 언패킹이 이루어질 수 있음)
+        bestsellers = []
+        if 'top_products' in self.summary:
+            for product, count in self.summary['top_products'][:2]:
+                short_name = product[:20] + "..." if len(product) > 20 else product
+                bestsellers.append(f"{short_name} ({count}건)")
         
-        # 추천 정보 추가
-        if auto_product_keywords:
-            strategy_vars['product_keywords'] = ', '.join(auto_product_keywords)
-        else:
-            strategy_vars['product_keywords'] = ', '.join(keywords) if keywords else '데이터 없음'
-            
-        strategy_vars['colors'] = ', '.join([c for c in colors]) if colors else '데이터 없음'
+        # 다른 변수들 처리 (딕셔너리 리스트 기반)
+        product_keywords = keywords  # 이미 추출됨
+        design_keywords = self.summary.get('top_designs', [])[:3]
+        material_keywords = self.summary.get('top_materials', [])[:3]
+        auto_product_keywords = self.summary.get('auto_product_keywords', [])
+        style_keywords = auto_style_keywords if auto_style_keywords else ["와이드핏", "크롭", "핀턱"]
+        color_groups = []
+        if 'auto_color_groups' in self.summary:
+            color_groups = [cg['name'] for cg in self.summary.get('auto_color_groups', [])]
+        color_keywords = [c['name'] for c in self.summary.get('top_colors', [])[:3]]
+        
+        channel_products = {}
+        if 'top3_channels' in self.summary and len(self.summary['top3_channels']) >= 3:
+            channels = self.summary['top3_channels'][:3]
+            if product_keywords and len(product_keywords) >= 3:
+                channel_products = {
+                    channels[0]: f"{product_keywords[0]}/{product_keywords[1]} 중심",
+                    channels[1]: f"{product_keywords[1]}/{product_keywords[2]} 위주",
+                    channels[2]: f"{design_keywords[0] if design_keywords else ''} {product_keywords[0]}/{product_keywords[2]}"
+                }
+                if auto_style_keywords and len(auto_style_keywords) >= 2:
+                    channel_products[channels[0]] = f"{auto_style_keywords[0]} {product_keywords[0]}/{product_keywords[1]}"
+                    if len(channels) > 1 and len(auto_style_keywords) > 1:
+                        channel_products[channels[1]] = f"{auto_style_keywords[1]} {product_keywords[1]}/{product_keywords[2]}"
+        
+        strategy_vars['product_keywords'] = ', '.join(product_keywords) if product_keywords else '데이터 없음'
+        strategy_vars['colors'] = ', '.join(colors) if colors else '데이터 없음'
         strategy_vars['materials'] = ', '.join(materials) if materials else '데이터 없음'
         strategy_vars['designs'] = ', '.join(designs) if designs else '데이터 없음'
-        
-        # 자동 추출 키워드
         strategy_vars['has_auto_keywords'] = bool(auto_style_keywords)
         strategy_vars['auto_style_keywords'] = ', '.join(auto_style_keywords[:5]) if auto_style_keywords else ''
-        
-        # 가격 및 채널 전략
         strategy_vars['main_price_range'] = guide.get('main_price_range', '데이터 없음')
         strategy_vars['main_price_percent'] = guide.get('main_price_percent', 0)
         
-        channels = guide.get('channels', [])
-        strategy_vars['has_channels'] = len(channels) >= 2
-        strategy_vars['top_channels'] = ', '.join(channels[:2]) if channels and len(channels) >= 2 else '데이터 없음'
+        channels_list = guide.get('channels', [])
+        strategy_vars['has_channels'] = len(channels_list) >= 2
+        strategy_vars['top_channels'] = ', '.join(channels_list[:2]) if channels_list and len(channels_list) >= 2 else '데이터 없음'
         
-        # 종합 전략 요약
-        strategy_summary = []
+        strategy_vars['strategy_summary'] = [
+            {'point': f"{product_keywords[0]} 카테고리에 {colors[0]} 컬러로 진입"} if product_keywords and colors else {}
+        ]
         
-        if keywords and colors:
-            strategy_summary.append({
-                'point': f"{keywords[0]} 카테고리에 {colors[0]} 컬러로 진입"
-            })
-        
-        if 'main_price_range' in guide:
-            strategy_summary.append({
-                'point': f"{guide['main_price_range']} 가격대에 집중"
-            })
-        
-        if channels:
-            strategy_summary.append({
-                'point': f"{channels[0]} 채널을 우선적으로 공략"
-            })
-        
-        if materials and designs:
-            strategy_summary.append({
-                'point': f"{materials[0]} 소재와 {designs[0]} 디자인 요소를 활용한 상품 개발"
-            })
-        
-        if auto_style_keywords and len(auto_style_keywords) > 0:
-            strategy_summary.append({
-                'point': f"{auto_style_keywords[0]} 스타일 키워드를 상품명과 설명에 활용"
-            })
-        elif 'free_size_ratio' in guide:
-            strategy_summary.append({
-                'point': f"사이즈는 FREE 중심으로 구성 (전체의 {guide['free_size_ratio']:.1f}%)"
-            })
-        
-        strategy_vars['strategy_summary'] = strategy_summary
-        
-        # 추천 상품 목록
-        if guide.get('recommended_products'):
-            recommended_products = []
-            for idx, product in enumerate(guide['recommended_products'][:3], 1):
-                recommended_products.append({
-                    'index': idx,
-                    'name': product
+        strategy_vars['recommended_products'] = []
+        if guide and 'recommended_products' in guide:
+            for i, product in enumerate(guide['recommended_products'][:3]):
+                strategy_vars['recommended_products'].append({
+                    'index': i + 1,
+                    'name': product if isinstance(product, str) else f"{i+1}. 추천 상품"
                 })
-            strategy_vars['recommended_products'] = recommended_products
-            strategy_vars['has_recommended_products'] = True
-        else:
-            strategy_vars['recommended_products'] = []
-            strategy_vars['has_recommended_products'] = False
+        if not strategy_vars['recommended_products']:
+            strategy_vars['recommended_products'] = [{'index': 1, 'name': '추천 상품 데이터 없음'}]
+        
+        strategy_vars['channel_products'] = channel_products
+        strategy_vars['keyword_recommendations'] = [
+            {'name': '상품 키워드', 'description': ', '.join(product_keywords[:3])}
+        ] if product_keywords else [{'name': '키워드 데이터 없음', 'description': ''}]
         
         return strategy_vars
-    
+        
     def _prepare_auto_keywords_variables(self):
         """자동 추출 키워드 변수 준비"""
         auto_vars = {}

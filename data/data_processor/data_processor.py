@@ -1,4 +1,4 @@
-# data/data_processor.py
+# data/data_processor/data_processor.py
 import pandas as pd
 from config.config import Config
 from data.data_processor.data_loader import DataLoader
@@ -25,19 +25,18 @@ class DataProcessor:
         self.attribute_extractor = None
         self.sales_analyzer = None
     
-    def load_data(self, file_path1, file_path2=None):
+    def load_data(self, file_path):
         """
         데이터 로드 및 기본 전처리
         
         Parameters:
-        - file_path1: 첫 번째 엑셀 파일 경로
-        - file_path2: 두 번째 엑셀 파일 경로 (선택사항)
+        - file_path: 엑셀 파일 경로
         
         Returns:
         - 전처리된 데이터프레임
         """
         # DataLoader에 위임
-        self.df = self.data_loader.load_data(file_path1, file_path2)
+        self.df = self.data_loader.load_data(file_path)
         self.start_date, self.end_date = self.data_loader.get_analysis_period()
         
         # 데이터 로드 후 나머지 프로세서 초기화

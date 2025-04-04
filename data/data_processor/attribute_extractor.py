@@ -1,4 +1,4 @@
-# data/attribute_extractor.py
+# data/data_processor/attribute_extractor.py
 import re
 from collections import Counter
 from config.config import Config

@@ -1,3 +1,4 @@
+# main.py
 import os
 import argparse
 import webbrowser
@@ -10,13 +11,13 @@ from output.dashboard_generator import DashboardGenerator
 from config.config import Config
 from visualization.insights_formatter import InsightsFormatter
 
-def create_analysis_workflow(file1, file2=None, output_folder='bflow_reports', config=None):
+def create_analysis_workflow(file, output_folder='bflow_reports', config=None):
     if config is None:
         config = Config()
         config.output_folder = output_folder
 
     analyzer = BflowAnalyzer(config)
-    analyzer.load_data(file1, file2)
+    analyzer.load_data(file)
     insights = analyzer.analyze_data()
 
     formatter = InsightsFormatter(insights)
@@ -42,8 +43,7 @@ def main():
     )
 
     # 파일 관련 인수
-    parser.add_argument('file1', help='첫 번째 엑셀 파일 경로')
-    parser.add_argument('--file2', help='두 번째 엑셀 파일 경로 (선택사항)', default=None)
+    parser.add_argument('file', help='엑셀 파일 경로')
     parser.add_argument('--output', '-o', help='결과물 저장 폴더', default='bflow_reports')
 
     # 출력 관련 인수
@@ -59,8 +59,7 @@ def main():
     try:
         # 워크플로우 실행
         workflow = create_analysis_workflow(
-            args.file1,
-            args.file2,
+            args.file,
             args.output
         )
 

@@ -1,3 +1,4 @@
+# visualization/chart_generator.py
 import plotly.express as px
 import plotly.graph_objects as go
 from config.config import Config

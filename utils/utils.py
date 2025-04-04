@@ -1,4 +1,4 @@
-# modules/utils.py
+# utils/utils.py
 """
 비플로우 분석 시스템의 유틸리티 함수 모음
 """

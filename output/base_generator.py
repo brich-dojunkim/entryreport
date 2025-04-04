@@ -1,4 +1,4 @@
-# modules/base_generator.py
+# output/base_generator.py
 from pathlib import Path
 from datetime import datetime
 from visualization.insights_formatter import InsightsFormatter

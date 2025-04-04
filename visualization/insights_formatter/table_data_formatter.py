@@ -12,9 +12,16 @@ class TableDataFormatter:
                 return []
             return [{"name": k, "value": v} for k, v in self.insights['product_keywords']['top_keywords'][:10]]
         elif data_type == 'colors':
-            if 'colors' not in self.insights or 'top_items' not in self.insights['colors']:
+            if 'colors' not in self.insights:
                 return []
-            return [{"name": c, "value": v} for c, v in self.insights['colors']['top_items'][:7]]
+            
+            # colors는 formatted가 있을 수 있음
+            if isinstance(self.insights['colors'], dict) and 'formatted' in self.insights['colors']:
+                return self.insights['colors']['formatted']
+            # 또는 colors 자체가 리스트일 수 있음
+            elif isinstance(self.insights['colors'], list):
+                return self.insights['colors']
+            return []
         elif data_type == 'prices':
             if 'price_ranges' not in self.insights or 'price_data' not in self.insights['price_ranges']:
                 return []
@@ -24,17 +31,35 @@ class TableDataFormatter:
                 return []
             return self.insights['channels']['channel_data']
         elif data_type == 'sizes':
-            if 'sizes' not in self.insights or 'sizes_data' not in self.insights['sizes']:
+            if 'sizes' not in self.insights:
                 return []
-            return self.insights['sizes']['sizes_data']
+            
+            # sizes는 formatted가 있을 수 있음
+            if isinstance(self.insights['sizes'], dict) and 'formatted' in self.insights['sizes']:
+                return self.insights['sizes']['formatted']
+            return []
         elif data_type == 'materials':
-            if 'materials' not in self.insights or 'materials_data' not in self.insights['materials']:
+            if 'materials' not in self.insights:
                 return []
-            return self.insights['materials']['materials_data']
+            
+            # materials는 formatted가 있을 수 있음
+            if isinstance(self.insights['materials'], dict) and 'formatted' in self.insights['materials']:
+                return self.insights['materials']['formatted']
+            # 또는 materials 자체가 리스트일 수 있음
+            elif isinstance(self.insights['materials'], list):
+                return self.insights['materials']
+            return []
         elif data_type == 'designs':
-            if 'designs' not in self.insights or 'designs_data' not in self.insights['designs']:
+            if 'designs' not in self.insights:
                 return []
-            return self.insights['designs']['designs_data']
+            
+            # designs는 formatted가 있을 수 있음
+            if isinstance(self.insights['designs'], dict) and 'formatted' in self.insights['designs']:
+                return self.insights['designs']['formatted']
+            # 또는 designs 자체가 리스트일 수 있음
+            elif isinstance(self.insights['designs'], list):
+                return self.insights['designs']
+            return []
         elif data_type == 'bestsellers':
             if 'bestsellers' not in self.insights or 'bestseller_data' not in self.insights['bestsellers']:
                 return []

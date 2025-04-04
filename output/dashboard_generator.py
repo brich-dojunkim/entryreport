@@ -136,6 +136,9 @@ class DashboardGenerator(BaseGenerator):
         try:
             material_data = self.formatter.format_table_data('materials')
             design_data = self.formatter.format_table_data('designs')
+            # 빈 데이터 확인 추가
+            material_data = material_data if material_data else []
+            design_data = design_data if design_data else []
             material_design_data = material_data[:3] + design_data[:3]
             print(f"material_design_data 추출: {len(material_design_data)} 항목")
         except Exception as e:

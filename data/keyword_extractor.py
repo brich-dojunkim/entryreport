@@ -2,7 +2,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.cluster import KMeans
 import pandas as pd
 import numpy as np
-from utils.utils import clean_text, extract_keywords, safe_process_data
+from utils.utils import clean_text, safe_process_data
+from config.config import Config
 
 class KeywordExtractor:
     """상품 데이터에서 자동으로 키워드를 추출하는 클래스"""
@@ -17,7 +18,6 @@ class KeywordExtractor:
         
         # 설정 객체 설정
         if config is None:
-            from config.config import Config
             self.config = Config()
         else:
             self.config = config

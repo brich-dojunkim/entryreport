@@ -4,14 +4,15 @@
 엑셀 파일에서 주문 데이터를 분석하고, 인사이트 리포트와 대시보드를 생성합니다.
 """
 from data.analyzer import BflowAnalyzer
-from data.data_processor import DataProcessor
+from data.data_processor.data_processor import DataProcessor
+from data.keyword_extractor import KeywordExtractor  # 이 부분 수정됨
 from output.report_generator import ReportGenerator
 from output.dashboard_generator import DashboardGenerator
 from config.config import Config
 from visualization.insights_formatter import InsightsFormatter
 
 __version__ = '1.2.0'
-__author__ = 'BRICH 개발팀'
+__author__ = 'BRICH 김도준'
 
 def create_analysis_workflow(file1, file2=None, output_folder='bflow_reports', config=None):
     """
@@ -57,6 +58,7 @@ __all__ = [
     'create_analysis_workflow',
     'BflowAnalyzer',
     'DataProcessor',
+    'KeywordExtractor',  # 이 부분 추가됨
     'ReportGenerator',
     'DashboardGenerator',
     'Config'

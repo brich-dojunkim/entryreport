@@ -4,10 +4,7 @@ import webbrowser
 import threading
 import time
 from pathlib import Path
-
-# 절대 경로 import 방식으로 수정
 from data.analyzer import BflowAnalyzer
-from data.data_processor import DataProcessor
 from output.report_generator import ReportGenerator
 from output.dashboard_generator import DashboardGenerator
 from config.config import Config

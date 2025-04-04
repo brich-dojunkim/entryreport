@@ -1,16 +1,7 @@
-import os
-import time
 import webbrowser
 from pathlib import Path
-from datetime import datetime
-import pandas as pd
-import numpy as np
-import plotly.graph_objects as go
 from jinja2 import Environment, FileSystemLoader
-from dash import Dash, html, dcc
-from dash.dependencies import Input, Output
-import dash_bootstrap_components as dbc
-from visualization.chart_generator import ChartGenerator
+from config.config import Config
 from output.base_generator import BaseGenerator
 from utils.utils import convert_to_serializable, safe_process_data
 
@@ -32,7 +23,6 @@ class DashboardGenerator(BaseGenerator):
         
         # 설정 객체 설정
         if config is None:
-            from config.config import Config
             self.config = Config()
         else:
             self.config = config

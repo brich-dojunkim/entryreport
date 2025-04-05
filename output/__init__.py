@@ -5,5 +5,6 @@
 from output.base_generator import BaseGenerator
 # from output.report_generator import ReportGenerator
 # from output.dashboard_generator import DashboardGenerator
+from output.formatters.excel_formatter import ExcelFormatter
 
-__all__ = ['BaseGenerator', 'ReportGenerator', 'DashboardGenerator']
+__all__ = ['BaseGenerator', 'ReportGenerator', 'DashboardGenerator', 'ExcelFormatter']

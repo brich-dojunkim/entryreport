@@ -1,6 +1,7 @@
 # dashboard_generator/dashboard_generator.py
 """
 비플로우 분석 결과를 바탕으로 대시보드 생성하는 메인 클래스
+HTML 또는 엑셀 출력 형식 지원
 """
 import webbrowser
 from pathlib import Path
@@ -8,12 +9,13 @@ from output.base_generator import BaseGenerator
 from config.config import Config
 from utils.utils import convert_to_serializable
 from output.dashboard_generator.data_processor.data_processor import DashboardDataProcessor
-from output.dashboard_generator.template_handler import TemplateHandler
+from output.formatters.template_handler import TemplateHandler
+from output.formatters.excel_formatter import ExcelFormatter
 
 class DashboardGenerator(BaseGenerator):
     """비플로우 분석 결과를 바탕으로 대시보드 생성"""
     
-    def __init__(self, insights, formatter=None, output_folder='bflow_reports', config=None):
+    def __init__(self, insights, formatter=None, output_folder='bflow_reports', config=None, output_format='excel'):
         """
         대시보드 생성기 초기화
         
@@ -22,6 +24,7 @@ class DashboardGenerator(BaseGenerator):
         - formatter: InsightsFormatter 인스턴스 (None이면 자동 생성)
         - output_folder: 결과물 저장 폴더
         - config: 설정 객체 (None이면 기본 설정 사용)
+        - output_format: 출력 형식 ('html' 또는 'excel', 기본값은 'excel')
         """
         # 부모 클래스 초기화
         super().__init__(insights, formatter, output_folder)
@@ -32,6 +35,9 @@ class DashboardGenerator(BaseGenerator):
         else:
             self.config = config
         
+        # 출력 형식 설정
+        self.output_format = output_format
+        
         # 템플릿 경로 설정
         self.template_folder = Path(self.config.template_folder)
         
@@ -39,22 +45,83 @@ class DashboardGenerator(BaseGenerator):
         self.data_processor = DashboardDataProcessor(insights, self.formatter)
         self.template_handler = TemplateHandler(self.template_folder)
         
-        # 디버깅 정보 출력
-        print(f"DashboardGenerator 초기화 - insights 타입: {type(insights)}")
-        print(f"DashboardGenerator 초기화 - summary 타입: {type(self.summary)}")
+        # 엑셀 포맷터 생성
+        self.excel_formatter = ExcelFormatter(self.formatter)
     
     def generate_dashboard(self, port=None, open_browser=True):
         """
         대시보드 생성 및 실행
         
         Parameters:
+        - port: 대시보드 실행 포트 (None이면 설정에서 가져옴, HTML 모드에서만 사용)
+        - open_browser: 브라우저 자동 실행 여부
+        
+        Returns:
+        - 생성된 대시보드 URL 또는 파일 경로
+        """
+        if self.output_format.lower() == 'excel':
+            return self._generate_excel_dashboard(open_browser)
+        else:
+            return self._generate_html_dashboard(port, open_browser)
+    
+    def _generate_excel_dashboard(self, open_browser=True):
+        """
+        엑셀 대시보드 생성
+        
+        Parameters:
+        - open_browser: 생성 후 브라우저로 열기 여부
+        
+        Returns:
+        - 생성된 엑셀 파일 경로
+        """
+        print("엑셀 대시보드를 생성합니다...")
+        
+        try:
+            # 파일 경로 설정
+            dashboard_file = self.output_folder / f"dashboard_{self.timestamp}.xlsx"
+                
+            # 템플릿 변수 준비
+            template_vars = self.data_processor.prepare_template_variables()
+            
+            # 모든 데이터를 직렬화 가능한 형식으로 변환
+            for key in template_vars:
+                if key in ['product_data', 'color_data', 'price_data', 'channel_data', 
+                        'size_data', 'material_design_data', 'bestseller_data']:
+                    template_vars[key] = convert_to_serializable(template_vars[key])
+            
+            # 엑셀 파일 생성
+            saved_path = self.excel_formatter.generate_excel(template_vars, dashboard_file)
+            
+            if saved_path:
+                print(f"엑셀 대시보드가 생성되었습니다: {saved_path}")
+                
+                # 브라우저에서 열기
+                if open_browser:
+                    webbrowser.open(f"file://{Path(saved_path).resolve()}")
+                
+                return str(saved_path)
+            else:
+                print("대시보드 파일 저장 실패")
+                return None
+                
+        except Exception as e:
+            print(f"엑셀 대시보드 생성 중 오류 발생: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+    
+    def _generate_html_dashboard(self, port=None, open_browser=True):
+        """
+        HTML 대시보드 생성 (기존 기능 유지)
+        
+        Parameters:
         - port: 대시보드 실행 포트 (None이면 설정에서 가져옴)
         - open_browser: 브라우저 자동 실행 여부
         
         Returns:
-        - 생성된 대시보드 URL
+        - 생성된 대시보드 URL 또는 파일 경로
         """
-        print("대시보드 생성 중...")
+        print("HTML 대시보드 생성 중...")
         
         try:
             # 포트 설정 (필요한 경우)
@@ -90,7 +157,7 @@ class DashboardGenerator(BaseGenerator):
                 return None
                 
         except Exception as e:
-            print(f"대시보드 생성 중 오류 발생: {e}")
+            print(f"HTML 대시보드 생성 중 오류 발생: {e}")
             import traceback
             traceback.print_exc()
             return None

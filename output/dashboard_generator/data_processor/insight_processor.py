@@ -1,30 +1,18 @@
-# dashboard_generator/data_processor/insight_processor.py
+# output/data_processor/insight_processor.py
 """
 인사이트 텍스트 생성 처리 모듈
 """
-
 class InsightProcessor:
-    """인사이트 텍스트 처리 클래스"""
+    """인사이트 텍스트 처리 (상품, 색상, 가격대, 채널, 사이즈 등)"""
     
     def __init__(self, formatter):
-        """
-        인사이트 처리기 초기화
-        
-        Parameters:
-        - formatter: InsightsFormatter 인스턴스
-        """
         self.formatter = formatter
     
     def generate_insights(self):
         """
-        모든 섹션의 인사이트 텍스트 생성
-        
-        Returns:
-        - 인사이트 텍스트 딕셔너리
+        섹션별 인사이트 텍스트를 생성해 딕셔너리로 반환
         """
         insights = {}
-        
-        # 각 섹션별 인사이트 텍스트 생성
         insights['product_insight'] = self.formatter.generate_insight_text('product')
         insights['color_insight'] = self.formatter.generate_insight_text('color')
         insights['price_insight'] = self.formatter.generate_insight_text('price')

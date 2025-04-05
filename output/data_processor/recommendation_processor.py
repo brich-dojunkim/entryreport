@@ -2,7 +2,6 @@
 """
 추천(실행 가이드) 데이터 처리 모듈
 """
-
 class RecommendationProcessor:
     """추천/가이드 데이터 처리 클래스"""
     
@@ -11,10 +10,12 @@ class RecommendationProcessor:
     
     def generate_recommendations(self):
         """
-        '실행 가이드' 관련 추천 데이터(상품·채널·키워드 등)를 딕셔너리로 반환
+        '실행 가이드' 관련 추천 데이터(상품·채널·키워드)를 딕셔너리로 반환
         """
         recommendations = {}
-        guide = self.formatter.get_execution_guide() if self.formatter else None
+        guide = None
+        if self.formatter:
+            guide = self.formatter.get_execution_guide()
         
         # 상품 추천
         recommendations['product_recommendations'] = self._generate_product_recommendations(guide)
@@ -47,7 +48,9 @@ class RecommendationProcessor:
         
         if guide and 'channels' in guide and guide['channels']:
             for i, channel in enumerate(guide['channels'][:3]):
-                price_text = f" {guide.get('main_price_range', '')}에 집중" if 'main_price_range' in guide else ""
+                price_text = ""
+                if 'main_price_range' in guide:
+                    price_text = f" {guide['main_price_range']}에 집중"
                 channel_recommendations.append({
                     'name': f"{channel} 채널",
                     'description': f"진입 중점 채널{price_text}"

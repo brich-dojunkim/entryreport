@@ -2,13 +2,11 @@
 """
 비플로우 분석 결과를 바탕으로 리포트를 생성하는 메인 클래스 (HTML 또는 엑셀 출력 지원)
 """
+import webbrowser
 from pathlib import Path
 from flask import Flask, render_template
-import webbrowser
-from datetime import datetime
 from output.base_generator import BaseGenerator
-
-from output.report_generator.data_processor.data_processor import ReportDataProcessor
+from output.data_processor.data_processor import DataProcessor
 from output.formatters.template_handler import TemplateHandler
 
 class ReportGenerator(BaseGenerator):
@@ -25,12 +23,16 @@ class ReportGenerator(BaseGenerator):
         - output_format: 출력 형식 ('html' 또는 'excel', 기본값은 'excel')
         """
         super().__init__(insights, formatter, output_folder)
+        
         self.chart_folder = self.output_folder / 'charts'
         self.chart_folder.mkdir(exist_ok=True)
         self.template_folder = Path('templates')
         self.output_format = output_format
 
-        self.data_processor = ReportDataProcessor(insights, formatter)
+        # ★ 통합 DataProcessor 사용
+        self.data_processor = DataProcessor(insights, formatter)
+
+        # 템플릿 핸들러 (HTML, Excel)
         self.template_handler = TemplateHandler(self.template_folder, formatter)
 
     def generate_html_report(self):
@@ -52,11 +54,7 @@ class ReportGenerator(BaseGenerator):
         html_file = self.output_folder / f"bflow_report_{self.timestamp}.html"
 
         try:
-            # 템플릿 변수 준비
-            template_vars = self.data_processor.prepare_template_variables(
-                now=self.now,
-                summary=self.summary
-            )
+            template_vars = self.data_processor.prepare_template_variables()
 
             # 템플릿 렌더링
             output_html = self.template_handler.render_template(
@@ -87,11 +85,8 @@ class ReportGenerator(BaseGenerator):
         excel_file = self.output_folder / f"bflow_report_{self.timestamp}.xlsx"
 
         try:
-            # 템플릿 변수 준비 (기존 데이터 처리기 활용)
-            template_vars = self.data_processor.prepare_template_variables(
-                now=self.now,
-                summary=self.summary
-            )
+            # 템플릿 변수 준비
+            template_vars = self.data_processor.prepare_template_variables()
 
             # 엑셀 파일 저장
             saved_path = self.template_handler.save_excel(template_vars, excel_file)
@@ -125,11 +120,9 @@ class ReportGenerator(BaseGenerator):
         else:
             print(f"웹 리포트 서버 시작 중... (포트: {port})")
 
-            template_vars = self.data_processor.prepare_template_variables(
-                now=self.now,
-                summary=self.summary
-            )
+            template_vars = self.data_processor.prepare_template_variables()
 
+            # Flask 앱 구동
             app = Flask(__name__,
                         template_folder=str(self.template_folder),
                         static_folder=str(self.chart_folder))

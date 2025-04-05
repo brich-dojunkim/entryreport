@@ -1,13 +1,13 @@
 # output/data_processor/auto_keyword_processor.py
 """
-자동 키워드 처리 모듈
+자동 키워드 처리 모듈 (스타일 키워드, 상품 키워드, 색상 그룹 등)
 """
 class AutoKeywordProcessor:
-    """자동 추출 키워드 (스타일/상품/색상) 처리 클래스"""
+    """자동 추출 키워드 처리 클래스"""
     
     def prepare_auto_keywords_variables(self, insights):
         auto_vars = {}
-
+        
         if 'auto_keywords' not in insights:
             auto_vars['has_auto_keywords'] = False
             return auto_vars
@@ -45,24 +45,24 @@ class AutoKeywordProcessor:
         else:
             auto_vars['has_color_groups'] = False
 
-        # (4) 자동 인사이트 문장
+        # (4) 인사이트 문장
         auto_insights = []
         if auto_vars.get('has_style_keywords'):
             top3_styles = style_keywords[:3]
             auto_insights.append({
-                'text': f"주요 스타일 키워드는 {', '.join(top3_styles)} 입니다."
+                'text': f"AI가 분석한 주요 스타일 키워드는 {', '.join(top3_styles)} 입니다."
             })
         if auto_vars.get('has_product_keywords'):
-            top3 = [kw['keyword'] for kw in auto_vars['product_keywords'][:3]]
+            top3_prod = [p['keyword'] for p in auto_vars['product_keywords'][:3]]
             auto_insights.append({
-                'text': f"상품 키워드 상위 3개는 {', '.join(top3)} 입니다."
+                'text': f"상품 키워드로는 {', '.join(top3_prod)} 등이 유의미합니다."
             })
         if auto_vars.get('has_color_groups'):
-            cg = auto_vars['color_groups']
-            c_names = [c['color'] for c in cg[:3]]
+            c_names = [c['color'] for c in auto_vars['color_groups'][:3]]
             auto_insights.append({
-                'text': f"주요 색상은 {', '.join(c_names)} 입니다."
+                'text': f"주요 색상군: {', '.join(c_names)}"
             })
+        
         auto_vars['auto_insights'] = auto_insights
-
+        
         return auto_vars

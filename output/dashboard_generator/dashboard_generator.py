@@ -8,9 +8,10 @@ from pathlib import Path
 from output.base_generator import BaseGenerator
 from config.config import Config
 from utils.utils import convert_to_serializable
-from output.dashboard_generator.data_processor.data_processor import DashboardDataProcessor
+from output.data_processor.data_processor import DataProcessor
 from output.formatters.template_handler import TemplateHandler
 from output.formatters.excel_formatter import ExcelFormatter
+
 
 class DashboardGenerator(BaseGenerator):
     """비플로우 분석 결과를 바탕으로 대시보드 생성"""
@@ -26,7 +27,6 @@ class DashboardGenerator(BaseGenerator):
         - config: 설정 객체 (None이면 기본 설정 사용)
         - output_format: 출력 형식 ('html' 또는 'excel', 기본값은 'excel')
         """
-        # 부모 클래스 초기화
         super().__init__(insights, formatter, output_folder)
         
         # 설정 객체 설정
@@ -41,11 +41,11 @@ class DashboardGenerator(BaseGenerator):
         # 템플릿 경로 설정
         self.template_folder = Path(self.config.template_folder)
         
-        # 데이터 처리기 및 템플릿 핸들러 생성
-        self.data_processor = DashboardDataProcessor(insights, self.formatter)
+        # ★ 데이터 처리기를 통합된 DataProcessor로 교체
+        self.data_processor = DataProcessor(insights, self.formatter)
+
+        # 템플릿 핸들러 / 엑셀 포맷터
         self.template_handler = TemplateHandler(self.template_folder)
-        
-        # 엑셀 포맷터 생성
         self.excel_formatter = ExcelFormatter(self.formatter)
     
     def generate_dashboard(self, port=None, open_browser=True):
@@ -67,12 +67,6 @@ class DashboardGenerator(BaseGenerator):
     def _generate_excel_dashboard(self, open_browser=True):
         """
         엑셀 대시보드 생성
-        
-        Parameters:
-        - open_browser: 생성 후 브라우저로 열기 여부
-        
-        Returns:
-        - 생성된 엑셀 파일 경로
         """
         print("엑셀 대시보드를 생성합니다...")
         
@@ -83,10 +77,10 @@ class DashboardGenerator(BaseGenerator):
             # 템플릿 변수 준비
             template_vars = self.data_processor.prepare_template_variables()
             
-            # 모든 데이터를 직렬화 가능한 형식으로 변환
+            # 직렬화 가능한 형식으로 변환
             for key in template_vars:
                 if key in ['product_data', 'color_data', 'price_data', 'channel_data', 
-                        'size_data', 'material_design_data', 'bestseller_data']:
+                           'size_data', 'material_design_data', 'bestseller_data']:
                     template_vars[key] = convert_to_serializable(template_vars[key])
             
             # 엑셀 파일 생성
@@ -113,13 +107,6 @@ class DashboardGenerator(BaseGenerator):
     def _generate_html_dashboard(self, port=None, open_browser=True):
         """
         HTML 대시보드 생성 (기존 기능 유지)
-        
-        Parameters:
-        - port: 대시보드 실행 포트 (None이면 설정에서 가져옴)
-        - open_browser: 브라우저 자동 실행 여부
-        
-        Returns:
-        - 생성된 대시보드 URL 또는 파일 경로
         """
         print("HTML 대시보드 생성 중...")
         
@@ -131,10 +118,10 @@ class DashboardGenerator(BaseGenerator):
             # 템플릿 변수 준비
             template_vars = self.data_processor.prepare_template_variables()
             
-            # 모든 데이터를 직렬화 가능한 형식으로 변환
+            # 직렬화 가능한 형식으로 변환
             for key in template_vars:
                 if key in ['product_data', 'color_data', 'price_data', 'channel_data', 
-                        'size_data', 'material_design_data', 'bestseller_data']:
+                           'size_data', 'material_design_data', 'bestseller_data']:
                     template_vars[key] = convert_to_serializable(template_vars[key])
             
             # 템플릿 렌더링

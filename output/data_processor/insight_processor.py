@@ -11,6 +11,7 @@ class InsightProcessor:
     def generate_insights(self):
         """
         섹션별 인사이트 텍스트를 생성해 딕셔너리로 반환
+        예: product_insight, color_insight, price_insight...
         """
         insights = {}
         insights['product_insight'] = self.formatter.generate_insight_text('product')

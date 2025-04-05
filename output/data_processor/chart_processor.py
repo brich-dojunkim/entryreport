@@ -5,7 +5,7 @@
 from utils.utils import safe_process_data
 
 class ChartProcessor:
-    """차트 데이터 처리 (상품, 색상, 가격대, 채널, 사이즈, 소재 등)"""
+    """차트 데이터 처리 (상품, 색상, 가격대, 채널, 사이즈 등)"""
     
     def __init__(self, insights, formatter):
         self.insights = insights
@@ -14,6 +14,7 @@ class ChartProcessor:
     def generate_chart_data(self):
         """
         차트용 데이터 전체를 생성하여 딕셔너리로 반환
+        (상품/색상/가격대/채널/사이즈/소재/베스트셀러 등)
         """
         chart_data = {}
         chart_data['product_data'] = self._get_product_data()

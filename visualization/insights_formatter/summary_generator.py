@@ -1,82 +1,52 @@
 # visualization/insights_formatter/summary_generator.py
+"""
+요약 정보를 바탕으로 인사이트 문장을 생성하는 모듈
+"""
 class SummaryGenerator:
     """
-    insights 딕셔너리에서 주요 요약 정보를 추출하는 클래스.
-    모든 항목은 리스트의 dict 형식으로 보장합니다.
+    요약 정보를 바탕으로 사람이 읽을 수 있는 인사이트 문장을 생성하는 클래스
     """
-    def __init__(self, insights):
-        self.insights = insights
+    def __init__(self, summary):
+        self.summary = summary
 
-    def _ensure_dict_list(self, items):
+    def generate_summary_insights(self):
         """
-        items가 튜플 리스트이면 dict 리스트로 변환.
-        이미 dict 리스트이면 그대로 반환.
+        요약 정보를 바탕으로 사람이 읽을 수 있는 인사이트 문장들을 생성합니다.
+        
+        Returns:
+            list: 인사이트 문장 리스트
         """
-        if items and isinstance(items[0], tuple):
-            return [{'name': t[0], 'count': t[1], 'value': t[1]} for t in items]
-        return items
-
-    def generate_summary(self):
-        summary = {}
-        # product_keywords: 반드시 dict 형태
-        if 'product_keywords' in self.insights and isinstance(self.insights['product_keywords'], dict):
-            top_keywords = self.insights['product_keywords'].get('top_keywords', [])
-            summary['top_keywords'] = self._ensure_dict_list(top_keywords)[:3]
-        else:
-            summary['top_keywords'] = []
+        summary_points = []
         
-        if 'colors' in self.insights:
-            if isinstance(self.insights['colors'], dict):
-                top_colors = self.insights['colors'].get('top_items', [])
-            elif isinstance(self.insights['colors'], list):
-                top_colors = self.insights['colors']
-            else:
-                top_colors = []
-            summary['top_colors'] = self._ensure_dict_list(top_colors)[:3]
+        # 상품 키워드 정보 추가
+        if self.summary.get('top_keywords'):
+            kw0 = self.summary['top_keywords'][0]
+            summary_points.append(f"가장 많이 팔린 상품군: {kw0['name']} ({kw0['count']}건 판매)")
+            
+            # 인기 키워드 더 포함
+            if len(self.summary['top_keywords']) > 1:
+                kw_names = [item['name'] for item in self.summary['top_keywords'][:3]]
+                summary_points.append(f"인기 키워드: {', '.join(kw_names)}")
         
-        if 'price_ranges' in self.insights and isinstance(self.insights['price_ranges'], dict):
-            price_counts = self.insights['price_ranges'].get('counts', None)
-            if price_counts is not None and not price_counts.empty:
-                summary['main_price_range'] = price_counts.idxmax()
-                summary['main_price_percent'] = self.insights['price_ranges'].get('percent', {}).get(summary['main_price_range'], 0)
+        # 채널 정보 추가
+        if self.summary.get('top3_channels'):
+            summary_points.append(f"주요 판매 채널: {', '.join(self.summary['top3_channels'])}")
+            
+            # 채널 점유율 포함
+            if 'top3_ratio' in self.summary:
+                summary_points.append(f"상위 3개 채널 점유율: {self.summary['top3_ratio']}%")
         
-        if 'channels' in self.insights and isinstance(self.insights['channels'], dict):
-            summary['top3_channels'] = self.insights['channels'].get('top3_channels', [])
-            summary['top3_ratio'] = self.insights['channels'].get('top3_ratio', 0)
+        # 가격대 정보 추가
+        if self.summary.get('main_price_range'):
+            summary_points.append(f"주력 가격대: {self.summary['main_price_range']} (전체의 {self.summary.get('main_price_percent', 0):.1f}%)")
         
-        if 'sizes' in self.insights and isinstance(self.insights['sizes'], dict):
-            summary['free_size_ratio'] = self.insights['sizes'].get('free_size_ratio', 0)
-            summary['top_sizes'] = self._ensure_dict_list(self.insights['sizes'].get('top_items', []))
+        # 색상 정보
+        if self.summary.get('top_colors'):
+            color_names = [item['name'] for item in self.summary['top_colors'][:3]]
+            summary_points.append(f"인기 색상: {', '.join(color_names)}")
         
-        if 'materials' in self.insights:
-            if isinstance(self.insights['materials'], dict):
-                materials = self.insights['materials'].get('top_items', [])
-            elif isinstance(self.insights['materials'], list):
-                materials = self.insights['materials']
-            else:
-                materials = []
-            summary['top_materials'] = [item['name'] if isinstance(item, dict) else item[0] for item in self._ensure_dict_list(materials)][:3]
+        # 사이즈 정보
+        if self.summary.get('free_size_ratio'):
+            summary_points.append(f"FREE 사이즈 비율: {self.summary['free_size_ratio']:.1f}%")
         
-        if 'designs' in self.insights:
-            if isinstance(self.insights['designs'], dict):
-                designs = self.insights['designs'].get('top_items', [])
-            elif isinstance(self.insights['designs'], list):
-                designs = self.insights['designs']
-            else:
-                designs = []
-            summary['top_designs'] = [item['name'] if isinstance(item, dict) else item[0] for item in self._ensure_dict_list(designs)][:3]
-        
-        if 'bestsellers' in self.insights and isinstance(self.insights['bestsellers'], dict):
-            summary['total_orders'] = len(self.insights['bestsellers'].get('top_products', {}))
-            best_products = self.insights['bestsellers'].get('top_products', {}).items()
-            summary['top_products'] = [(product, count) for product, count in best_products][:5]
-        
-        if 'auto_keywords' in self.insights and isinstance(self.insights['auto_keywords'], dict):
-            if 'style_keywords' in self.insights['auto_keywords']:
-                summary['auto_style_keywords'] = self._ensure_dict_list(self.insights['auto_keywords']['style_keywords'])[:5]
-            if 'additional_product_keywords' in self.insights['auto_keywords']:
-                additional = self.insights['auto_keywords']['additional_product_keywords']
-                summary['auto_product_keywords'] = self._ensure_dict_list(additional)[:5]
-            if 'color_groups' in self.insights['auto_keywords']:
-                summary['auto_color_groups'] = self._ensure_dict_list(self.insights['auto_keywords']['color_groups'])[:5]
-        return summary
+        return summary_points

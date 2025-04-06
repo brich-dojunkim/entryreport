@@ -11,6 +11,7 @@ from output.data_processor.insight_processor import InsightProcessor
 from output.data_processor.recommendation_processor import RecommendationProcessor
 from output.data_processor.strategy_processor import StrategyProcessor
 from output.data_processor.auto_keyword_processor import AutoKeywordProcessor
+from output.data_processor.summary_processor import SummaryProcessor
 
 class DataProcessor:
     """
@@ -22,12 +23,23 @@ class DataProcessor:
         - insights: 분석 결과 딕셔너리
         - formatter: InsightsFormatter
         - now: datetime 객체 (없으면 현재 시각)
-        - summary: 리포트용 요약 정보(없으면 {})
+        - summary: 리포트용 요약 정보(없으면 새로 생성)
         """
         self.insights = insights
         self.formatter = formatter
         self.now = now or datetime.now()
-        self.summary = summary or {}
+        
+        # 요약 정보 생성 또는 사용
+        if summary is None:
+            # SummaryProcessor를 통해 요약 정보 생성
+            summary_processor = SummaryProcessor(insights)
+            self.summary = summary_processor.generate_summary()
+        else:
+            self.summary = summary
+            
+        # formatter에 요약 정보 설정
+        if formatter:
+            formatter.set_summary(self.summary)
 
         # 서브 프로세서들 초기화
         self.chart_processor = ChartProcessor(insights, formatter)
@@ -72,16 +84,10 @@ class DataProcessor:
         auto_vars = self.auto_keyword_processor.prepare_auto_keywords_variables(self.insights)
         template_vars.update(auto_vars)  # has_auto_keywords, style_keywords, product_keywords, color_groups, auto_insights
 
-        # (7) 요약 인사이트 (리포트) - 예시
-        summary_points = []
-        if self.summary.get('top_keywords'):
-            kw0 = self.summary['top_keywords'][0]
-            summary_points.append(f"가장 많이 팔린 상품군: {kw0['name']} ({kw0['count']}건 판매)")
-        if self.summary.get('top3_channels'):
-            summary_points.append(f"주요 판매 채널: {', '.join(self.summary['top3_channels'])}")
-        if self.summary.get('main_price_range'):
-            summary_points.append(f"주력 가격대: {self.summary['main_price_range']}")
-
-        template_vars['summary_insights'] = summary_points if summary_points else []
+        # (7) 요약 인사이트 (리포트) - InsightsFormatter에 위임
+        if self.formatter:
+            template_vars['summary_insights'] = self.formatter.generate_summary_insights()
+        else:
+            template_vars['summary_insights'] = []
 
         return template_vars

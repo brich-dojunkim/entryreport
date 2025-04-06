@@ -6,7 +6,7 @@
 """
 from data.analyzer import BflowAnalyzer
 from data.data_processor.data_processor import DataProcessor
-from data.keyword_extractor import KeywordExtractor  # 이 부분 수정됨
+from data.keyword_extractor import KeywordExtractor
 from output.report_generator import ReportGenerator
 from output.dashboard_generator import DashboardGenerator
 from config.config import Config
@@ -59,7 +59,7 @@ __all__ = [
     'create_analysis_workflow',
     'BflowAnalyzer',
     'DataProcessor',
-    'KeywordExtractor',  # 이 부분 추가됨
+    'KeywordExtractor',
     'ReportGenerator',
     'DashboardGenerator',
     'Config'

@@ -1,4 +1,3 @@
-# data/keyword_extractor/cluster_extractor.py
 """
 클러스터링(스타일 키워드) 추출 로직
 """
@@ -18,7 +17,7 @@ class ClusterExtractor:
         - n_clusters: 클러스터 개수
         - n_keywords: 각 클러스터에서 추출할 키워드 수
         Returns:
-        - 키워드 문자열들의 리스트 (ex: ["basic", "fit", "cotton"...])
+        - 키워드 문자열들의 리스트 (ex: ["basic", "fit", "cotton", ...])
         """
         if len(texts) < n_clusters:
             return []

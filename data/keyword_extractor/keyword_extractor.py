@@ -1,15 +1,11 @@
-# data/keyword_extractor/keyword_extractor.py
 """
 키워드 추출 메인 클래스 - KeywordExtractor
 """
-import pandas as pd
-import numpy as np
+import re
 
 # 절대 경로 import (사용자 요청사항)
-from config.config import Config
-from utils.utils import clean_text, safe_process_data
-
-# 서브 모듈에서 필요한 static 메서드를 safe_process_data로 감싸 호출
+from config import Config
+from utils import clean_text, safe_process_data
 from data.keyword_extractor.tfidf_extractor import TfidfExtractor
 from data.keyword_extractor.cluster_extractor import ClusterExtractor
 from data.keyword_extractor.color_extractor import ColorExtractor
@@ -24,13 +20,34 @@ class KeywordExtractor:
         - config: 설정 객체
         """
         self.df = df
-        if config is None:
-            self.config = Config()
-        else:
-            self.config = config
+        self.config = config if config is not None else Config()
     
-    def extract_product_keywords(self, column='상품명', n_keywords=10):
-        """TF-IDF를 이용한 중요 키워드 추출"""
+    def extract_product_keywords(self, column='상품명', n_keywords=10, use_category=True):
+        """
+        TF-IDF를 이용한 중요 키워드 추출  
+        카테고리 정보가 있으면 카테고리별 추출, 없으면 전체 데이터 추출
+        
+        Parameters:
+        - column: 텍스트 컬럼명
+        - n_keywords: 추출할 키워드 수
+        - use_category: 카테고리 정보 활용 여부
+        
+        Returns:
+        - [(키워드, tfidf값), ...] 형태의 리스트
+        """
+        if column not in self.df.columns:
+            return []
+        
+        # 카테고리별 TF-IDF 키워드 추출 (카테고리 컬럼이 있고 use_category가 True인 경우)
+        if use_category and '상품 카테고리' in self.df.columns:
+            return safe_process_data(
+                TfidfExtractor.extract_category_tfidf_keywords,
+                self.df, '상품 카테고리', column, n_keywords,
+                default_value=[],
+                error_message=f"카테고리별 {column} 키워드 추출 중 오류"
+            )
+        
+        # 전체 데이터 TF-IDF 키워드 추출
         texts = self._prepare_texts(column)
         if texts is None or len(texts) == 0:
             return []
@@ -65,7 +82,7 @@ class KeywordExtractor:
         if option_texts.empty:
             return []
         
-        # 색상 키워드 목록 -> 정규식 패턴으로
+        # 색상 키워드 목록 -> 정규식 패턴으로 결합
         color_patterns = '|'.join(self.config.get_product_attributes('colors'))
         
         return safe_process_data(
@@ -76,7 +93,7 @@ class KeywordExtractor:
         )
     
     def _prepare_texts(self, column):
-        """텍스트 데이터 준비 및 전처리"""
+        """텍스트 데이터 전처리: utils의 clean_text() 사용"""
         if column not in self.df.columns:
             return None
         
@@ -84,10 +101,6 @@ class KeywordExtractor:
         if texts.empty:
             return None
         
-        # 전처리 함수 적용
-        return texts.apply(self._preprocess_text)
-    
-    def _preprocess_text(self, text):
-        """텍스트 전처리"""
-        # utils.clean_text 사용
-        return clean_text(text, self.config.get_stop_words())
+        # 각 텍스트에 대해 utils의 clean_text 함수를 사용하여 전처리 수행
+        cleaned_texts = [clean_text(text) for text in texts]
+        return cleaned_texts

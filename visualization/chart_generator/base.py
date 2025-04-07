@@ -3,7 +3,6 @@
 차트 생성 모듈의 기본 클래스 및 유틸리티 함수
 """
 import plotly.graph_objects as go
-from config.config import Config
 
 class BaseChartGenerator:
     """
@@ -11,8 +10,8 @@ class BaseChartGenerator:
     공통 기능을 제공하고 추상 메소드를 정의합니다.
     """
     
-    # 공통 색상 설정
-    DEFAULT_COLORS = Config().get_chart_colors()
+    # 차트 색상 직접 설정
+    DEFAULT_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d']
     
     def __init__(self, colors=None):
         """

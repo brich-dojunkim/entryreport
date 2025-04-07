@@ -5,10 +5,10 @@ import webbrowser
 import threading
 import time
 from pathlib import Path
-from data.analyzer import BflowAnalyzer
+from data.analyzer.analyzer import BflowAnalyzer
 from output.report_generator import ReportGenerator
 from output.dashboard_generator import DashboardGenerator
-from config.config import Config
+from config import Config
 from visualization.insights_formatter import InsightsFormatter
 
 def create_analysis_workflow(file, output_folder='bflow_reports', config=None, output_format='excel'):
@@ -46,6 +46,41 @@ def create_analysis_workflow(file, output_folder='bflow_reports', config=None, o
         'report_generator': report_gen,
         'dashboard_generator': dashboard_gen
     }
+
+def open_file_safely(file_path):
+    """파일을 안전하게 열기"""
+    if not file_path:
+        return
+        
+    # Path 객체로 변환 및 절대 경로 취득
+    path_obj = Path(file_path).resolve()
+    
+    # 파일이 존재하는지 확인
+    if not path_obj.exists():
+        print(f"파일을 찾을 수 없습니다: {path_obj}")
+        return
+    
+    # 파일이 완전히 저장될 때까지 짧게 대기
+    time.sleep(1.0)  # 대기 시간 증가
+    
+    try:
+        import subprocess
+        
+        # 운영체제별 파일 열기 명령어
+        if os.name == 'posix':  # macOS, Linux
+            # subprocess를 사용한 더 안정적인 방법
+            subprocess.run(['open', str(path_obj)], check=True)
+        else:  # Windows
+            os.startfile(str(path_obj))
+            
+        print(f"파일을 열었습니다: {path_obj}")
+    except Exception as e:
+        print(f"파일을 열 수 없습니다: {e}")
+        # 대체 방법으로 웹브라우저 사용 시도
+        try:
+            webbrowser.open(str(path_obj))
+        except:
+            pass
 
 def main():
     # 명령줄 인수 파싱
@@ -85,9 +120,10 @@ def main():
 
             if report_path and os.path.exists(report_path) and not args.no_browser:
                 print(f"리포트가 생성되었습니다: {report_path}")
-                # HTML일 경우 브라우저에서 열기 (엑셀은 내부에서 처리)
+                
+                # 안전하게 파일 열기
                 if args.format.lower() == 'html':
-                    webbrowser.open(f"file://{Path(report_path).resolve()}")
+                    open_file_safely(report_path)
 
         # 대시보드 생성 (dashboard_only 또는 기본 모드)
         if not args.report_only:
@@ -114,9 +150,13 @@ def main():
                     return 0
             else:
                 # 엑셀 모드일 경우 즉시 실행
-                dashboard_path = dashboard_gen.generate_dashboard(None, not args.no_browser)
+                dashboard_path = dashboard_gen.generate_dashboard(None, False)  # 자동 열기 비활성화
                 if dashboard_path:
                     print(f"대시보드가 생성되었습니다: {dashboard_path}")
+                    
+                    # 안전하게 파일 열기 (no-browser 옵션이 아닐 경우)
+                    if not args.no_browser:
+                        open_file_safely(dashboard_path)
 
         print("처리 완료")
         return 0

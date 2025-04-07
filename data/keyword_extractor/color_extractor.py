@@ -1,4 +1,3 @@
-# data/keyword_extractor/color_extractor.py
 """
 색상 그룹 추출 로직
 """

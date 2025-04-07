@@ -6,8 +6,8 @@ HTML 또는 엑셀 출력 형식 지원
 import webbrowser
 from pathlib import Path
 from output.base_generator import BaseGenerator
-from config.config import Config
-from utils.utils import convert_to_serializable
+from config import Config
+from utils import convert_to_serializable
 from output.data_processor.data_processor import DataProcessor
 from output.formatters.template_handler import TemplateHandler
 from output.formatters.excel_formatter import ExcelFormatter

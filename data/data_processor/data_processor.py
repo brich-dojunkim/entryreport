@@ -1,6 +1,6 @@
 # data/data_processor/data_processor.py
 import pandas as pd
-from config.config import Config
+from config import Config
 from data.data_processor.data_loader import DataLoader
 from data.data_processor.attribute_extractor import AttributeExtractor
 from data.data_processor.sales_analyzer import SalesAnalyzer

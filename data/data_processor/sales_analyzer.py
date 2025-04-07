@@ -1,6 +1,6 @@
 # data/data_processor/sales_analyzer.py
 import pandas as pd
-from config.config import Config
+from config import Config
 
 class SalesAnalyzer:
     """판매 데이터 분석을 담당하는 클래스 (가격, 채널, 베스트셀러 등)"""

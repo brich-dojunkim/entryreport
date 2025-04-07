@@ -2,9 +2,7 @@
 """
 비플로우 분석 결과를 바탕으로 리포트를 생성하는 메인 클래스 (HTML 또는 엑셀 출력 지원)
 """
-import webbrowser
 from pathlib import Path
-from flask import Flask, render_template
 from output.base_generator import BaseGenerator
 from output.data_processor.data_processor import DataProcessor
 from output.formatters.template_handler import TemplateHandler
@@ -44,9 +42,9 @@ class ReportGenerator(BaseGenerator):
         if self.output_format.lower() == 'excel':
             return self.generate_excel_report()
         else:
-            return self._generate_html_report_original()
+            return self.generate_html_report()
 
-    def _generate_html_report_original(self):
+    def generate_html_report(self):
         """
         원래 HTML 리포트 생성 메소드 (후방 호환성 유지)
         """
@@ -102,41 +100,6 @@ class ReportGenerator(BaseGenerator):
             import traceback
             traceback.print_exc()
             return None
-
-    def generate_web_report(self, port=8051, open_browser=True):
-        """
-        웹 서버로 인터랙티브 HTML 리포트 표시
-        또는 엑셀 리포트 생성 및 열기 (output_format에 따라)
-        """
-        if self.output_format.lower() == 'excel':
-            print("웹 리포트 대신 엑셀 리포트를 생성합니다...")
-            excel_file = self.generate_excel_report()
-            
-            # 파일이 생성되었으면 브라우저로 열기 (설정된 경우)
-            if excel_file and open_browser:
-                webbrowser.open(f"file://{Path(excel_file).resolve()}")
-                
-            return excel_file
-        else:
-            print(f"웹 리포트 서버 시작 중... (포트: {port})")
-
-            template_vars = self.data_processor.prepare_template_variables()
-
-            # Flask 앱 구동
-            app = Flask(__name__,
-                        template_folder=str(self.template_folder),
-                        static_folder=str(self.chart_folder))
-
-            @app.route('/')
-            def index():
-                return render_template('report_template.html', **template_vars)
-
-            try:
-                app.run(host='127.0.0.1', port=port, debug=False)
-            except Exception as e:
-                print(f"웹 리포트 서버 실행 중 오류 발생: {e}")
-
-            return f'http://127.0.0.1:{port}'
 
     def generate_markdown_report(self):
         """

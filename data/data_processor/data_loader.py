@@ -1,6 +1,6 @@
 # data/data_processor/data_loader.py
 import pandas as pd
-from config.config import Config
+from config import Config
 
 class DataLoader:
     """데이터 로딩 및 기본 전처리를 담당하는 클래스"""

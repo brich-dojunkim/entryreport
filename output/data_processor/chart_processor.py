@@ -2,7 +2,7 @@
 """
 차트 데이터 처리 모듈
 """
-from utils.utils import safe_process_data  # 사용처에 맞춰 절대경로 or 상대경로 조정
+from utils import safe_process_data
 
 class ChartProcessor:
     """차트 데이터 처리 (상품, 색상, 가격대, 채널, 사이즈 등)"""

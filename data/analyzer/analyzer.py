@@ -24,16 +24,12 @@ class BflowAnalyzer:
         self.df = None
     
     def load_data(self, file_path):
-        """
-        데이터 로드 및 전처리 (DataProcessor에 위임)
-        
-        Parameters:
-          - file_path: 엑셀 파일 경로
-        
-        Returns:
-          - 전처리된 데이터프레임
-        """
+        """데이터 로드 및 전처리 (허용된 카테고리만 필터링)"""
         self.df = self.data_processor.load_data(file_path)
+        
+        # CSV에 정의된 카테고리의 상품만 필터링
+        self.df = self.data_processor.filter_allowed_categories()
+        
         self.insights['start_date'], self.insights['end_date'] = self.data_processor.get_analysis_period()
         return self.df
     

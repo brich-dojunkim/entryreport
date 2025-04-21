@@ -46,6 +46,47 @@ class DataProcessor:
         
         return self.df
     
+    def filter_allowed_categories(self):
+        """CSV에 정의된 카테고리의 상품만 필터링"""
+        if self.df is None or self.df.empty:
+            return pd.DataFrame()
+        
+        if '상품 카테고리' not in self.df.columns:
+            return self.df
+        
+        # 디버깅을 위한 출력 추가
+        print(f"필터링 전 카테고리 샘플: {self.df['상품 카테고리'].head(10).tolist()}")
+        print(f"필터링 전 카테고리 타입: {self.df['상품 카테고리'].dtype}")
+        
+        # CSV에 정의된 카테고리에 속하는 상품만 필터링
+        def is_allowed(code):
+            if pd.isna(code):
+                return False
+            if isinstance(code, (int, float)):
+                code = str(int(code))
+            else:
+                code = str(code)
+            result = self.config.category_config.is_allowed_category(code)
+            # 디버깅을 위한 출력
+            if result:
+                print(f"허용된 카테고리: {code}")
+            return result
+        
+        filtered_df = self.df[self.df['상품 카테고리'].apply(is_allowed)]
+        
+        print(f"전체 {len(self.df)}개 상품 중 {len(filtered_df)}개의 허용된 카테고리 상품 발견")
+        
+        if len(filtered_df) == 0:
+            # 디버깅: 허용된 카테고리 목록 출력
+            print(f"허용된 카테고리 목록: {list(self.config.category_config.allowed_categories)[:10]}...")
+        
+        self.df = filtered_df
+        if self.df is not None and not self.df.empty:
+            self.attribute_extractor = AttributeExtractor(self.df, self.config)
+            self.sales_analyzer = SalesAnalyzer(self.df, self.config)
+        
+        return self.df    
+    
     def get_analysis_period(self):
         """분석 기간 반환"""
         return self.start_date, self.end_date

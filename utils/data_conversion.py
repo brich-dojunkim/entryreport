@@ -1,3 +1,4 @@
+# utils/data_conversion.py
 import numpy as np
 import pandas as pd
 
@@ -14,7 +15,14 @@ def convert_to_serializable(data):
     if isinstance(data, list):
         return [convert_to_serializable(item) for item in data]
     elif isinstance(data, dict):
-        return {key: convert_to_serializable(value) for key, value in data.items()}
+        # 디버깅: 딕셔너리 변환 과정 추적
+        converted_dict = {}
+        for key, value in data.items():
+            # 'category' 키 보존 확인
+            if key == 'category':
+                print(f"[변환-디버그] 'category' 키 발견: {value}")
+            converted_dict[key] = convert_to_serializable(value)
+        return converted_dict
     elif isinstance(data, (np.int64, np.int32, np.int16, np.int8)):
         return int(data)
     elif isinstance(data, (np.float64, np.float32, np.float16)):

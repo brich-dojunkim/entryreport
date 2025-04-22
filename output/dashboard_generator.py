@@ -118,10 +118,44 @@ class DashboardGenerator(BaseGenerator):
             # 템플릿 변수 준비
             template_vars = self.data_processor.prepare_template_variables()
             
-            # 직렬화 가능한 형식으로 변환
+            # Guide 객체 가져오기
+            if self.formatter:
+                guide = self.formatter.get_execution_guide()
+            else:
+                guide = None
+            
+            # 속성 키워드 데이터 처리
+            if guide:
+                # 색상 키워드 - 더 많은 색상 제공
+                if 'color_keywords' in guide and guide['color_keywords']:
+                    template_vars['color_keywords'] = guide['color_keywords']
+                
+                # 소재 키워드 - 더 많은 소재 제공
+                if 'material_keywords' in guide and guide['material_keywords']:
+                    template_vars['material_keywords'] = guide['material_keywords']
+                
+                # 디자인 키워드 - 더 많은 디자인 제공
+                if 'design_keywords' in guide and guide['design_keywords']:
+                    template_vars['design_keywords'] = guide['design_keywords']
+                
+                # 스타일 키워드 (핏 & 실루엣) - 추가
+                if 'fit_style_keywords' in guide and guide['fit_style_keywords']:
+                    template_vars['style_keywords'] = guide['fit_style_keywords']
+                elif 'auto_style_keywords' in guide and guide['auto_style_keywords']:
+                    # 자동 추출 스타일 키워드에서 가져오기
+                    auto_style = []
+                    for item in guide['auto_style_keywords']:
+                        if isinstance(item, str):
+                            auto_style.append(item)
+                        elif isinstance(item, dict) and 'name' in item:
+                            auto_style.append(item['name'])
+                    template_vars['style_keywords'] = auto_style
+            
+            # 직렬화 가능한 형식으로 변환 (차트 데이터만)
+            from utils.data_conversion import convert_to_serializable
             for key in template_vars:
                 if key in ['product_data', 'color_data', 'price_data', 'channel_data', 
-                           'size_data', 'material_design_data', 'bestseller_data']:
+                        'size_data', 'material_data', 'design_data', 'bestseller_data']:
                     template_vars[key] = convert_to_serializable(template_vars[key])
             
             # 템플릿 렌더링

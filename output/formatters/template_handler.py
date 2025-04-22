@@ -1,8 +1,10 @@
+# output/formatters/template_handler.py
 """
 Common Template Handler for HTML and Excel generation.
 Uses Jinja2 for HTML, and ExcelFormatter for Excel.
 """
 from pathlib import Path
+import json
 from jinja2 import Environment, FileSystemLoader
 from output.formatters.excel_formatter import ExcelFormatter
 
@@ -33,6 +35,17 @@ class TemplateHandler:
         Returns:
         - 렌더링된 HTML 문자열
         """
+        # 디버깅: keyword_recommendations 데이터 구조 출력
+        if 'keyword_recommendations' in context:
+            print(f"[디버깅-Template] keyword_recommendations 개수: {len(context['keyword_recommendations'])}")
+            for i, item in enumerate(context['keyword_recommendations']):
+                # 각 항목의 구조 확인
+                print(f"[디버깅-Template] 키워드 {i+1} 구조: {json.dumps(item, default=str)}")
+                if 'category' in item:
+                    print(f"[디버깅-Template] 키워드 {i+1} 카테고리: {item['category']}")
+                else:
+                    print(f"[디버깅-Template] 키워드 {i+1}에 카테고리 속성 없음")
+        
         template = self.env.get_template(template_name)
         return template.render(**context)
     

@@ -72,9 +72,25 @@ class DataProcessor:
         text_insights = self.insight_processor.generate_insights()  # product_insight, color_insight, ...
         template_vars.update(text_insights)
 
-        # (4) 추천 (대시보드/실행가이드)
+        # (4) 추천 (대시보드/실행가이드) - 중요: 변환 없이 직접 대입
         recommends = self.recommendation_processor.generate_recommendations()
-        template_vars.update(recommends)  # product_recommendations, channel_recommendations, keyword_recommendations
+        
+        # (4.1) 키워드 추천만 따로 처리
+        if 'keyword_recommendations' in recommends:
+            print(f"[데이터변환] 키워드 추천 데이터 개수: {len(recommends['keyword_recommendations'])}")
+            # 직렬화 없이 직접 대입
+            template_vars['keyword_recommendations'] = recommends['keyword_recommendations']
+            
+            # 디버깅: 카테고리 속성 확인
+            for i, item in enumerate(template_vars['keyword_recommendations']):
+                if isinstance(item, dict) and 'category' in item:
+                    print(f"[데이터변환] 키워드 {i+1} 카테고리: {item['category']}")
+        else:
+            template_vars['keyword_recommendations'] = []
+        
+        # 나머지 추천 항목 처리
+        template_vars['product_recommendations'] = recommends.get('product_recommendations', [])
+        template_vars['channel_recommendations'] = recommends.get('channel_recommendations', [])
 
         # (5) 전략 (리포트)
         strat_vars = self.strategy_processor.prepare_strategy_variables(self.insights, self.summary)

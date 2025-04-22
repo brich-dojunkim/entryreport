@@ -19,6 +19,8 @@ class InsightProcessor:
         insights['price_insight'] = self.formatter.generate_insight_text('price')
         insights['channel_insight'] = self.formatter.generate_insight_text('channel')
         insights['size_insight'] = self.formatter.generate_insight_text('size')
-        insights['material_design_insight'] = self.formatter.generate_insight_text('material_design')
+        insights['material_insight'] = self.formatter.generate_insight_text('material')
+        insights['design_insight'] = self.formatter.generate_insight_text('design')
+        insights['bestseller_insight'] = self.formatter.generate_insight_text('bestseller')  # 추가
         
         return insights

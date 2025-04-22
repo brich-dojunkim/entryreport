@@ -45,4 +45,46 @@ class InsightTextGenerator:
             materials_str = ', '.join(materials[:2])
             designs_str = ', '.join(designs[:3])
             return f"{materials_str} 소재가 인기이며, {designs_str} 디자인이 선호됩니다."
+        elif section == 'material':
+            materials = self.summary.get('top_materials', [])
+            if not materials:
+                return "소재 데이터가 부족합니다."
+            materials_str = ', '.join(materials[:3])
+            return f"{materials_str} 등의 소재가 주로 사용되고 있습니다."
+        elif section == 'design':
+            designs = self.summary.get('top_designs', [])
+            if not designs:
+                return "디자인 데이터가 부족합니다."
+            designs_str = ', '.join(designs[:3])
+            return f"{designs_str} 등의 디자인 요소가 트렌드를 이끌고 있습니다."
+        elif section == 'bestseller':
+            if not self.summary.get('top_products'):
+                return "베스트셀러 데이터가 부족합니다."
+            
+            # 상위 3개 상품의 판매 비중 계산
+            top_products = self.summary.get('top_products', [])[:10]
+            if not top_products:
+                return "베스트셀러 데이터가 부족합니다."
+                
+            top10_names = [product[0] for product in top_products]
+            top10_counts = sum([product[1] for product in top_products])
+            total_orders = self.summary.get('total_orders', 0)
+            
+            if total_orders == 0:
+                return "베스트셀러 데이터가 부족합니다."
+                
+            top10_percent = (top10_counts / total_orders * 100) if total_orders > 0 else 0
+            
+            # 상위 상품들의 공통 키워드 찾기
+            common_keywords = []
+            if 'top_keywords' in self.summary:
+                top_keywords = [kw['name'] for kw in self.summary['top_keywords'][:2]]
+                common_keywords = top_keywords
+                
+            # 인사이트 문장 생성
+            if common_keywords:
+                common_keywords_str = ', '.join(common_keywords)
+                return f"상위 3개 상품이 전체 판매의 약 {top10_percent:.1f}%를 차지합니다. 이 상품들은 '{common_keywords_str}' 요소가 특징이며, 이러한 스타일을 확장하는 상품 라인업을 구성하세요."
+            else:
+                return f"상위 3개 상품이 전체 판매의 약 {top10_percent:.1f}%를 차지합니다. 이 상품군을 중심으로 라인업을 확장하며 유사한 가격대와 디자인으로 구성하세요."
         return "데이터 분석 중..."

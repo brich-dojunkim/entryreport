@@ -75,8 +75,10 @@ class DataLoader:
     def _handle_missing_data(self):
         """결측치 처리"""
         # 필수 컬럼에 결측치가 있는 행 제거
+        print(f"[DEBUG] 전처리 전 데이터 수: {len(self.df)}")
         essential_columns = ['결제일', '상품명']
         self.df = self.df.dropna(subset=essential_columns)
+        print(f"[DEBUG] 결제일/상품명 누락 제거 후: {len(self.df)}")
         
         # 상품가격 결측치는 0으로 대체
         if '상품가격' in self.df.columns:

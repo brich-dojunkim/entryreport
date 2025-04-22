@@ -22,8 +22,8 @@ class SalesAnalyzer:
         # 채널별 주문 수 계산
         channel_counts = self.df['판매채널'].value_counts()
         
-        # 상위 5개 채널 선택
-        top_channels = channel_counts.head(5)
+        # 상위 10개 채널 선택
+        top_channels = channel_counts.head(10)
         
         # 전체 주문 중 상위 3개 채널의 비율 계산
         top3_channels = channel_counts.head(3)

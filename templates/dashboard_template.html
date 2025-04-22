@@ -94,87 +94,101 @@
         </div>
 
         <div class="row">
-            <!-- 상품 유형 차트 -->
-            <div class="col-md-6 mb-4">
-                <div class="chart-container">
-                    <h3 class="chart-title">인기 상품 유형 TOP5</h3>
-                    <div id="product-chart" style="height: 350px;"></div>
-                    <div class="insight-box">
-                        <span class="insight-title">인사이트:</span>
-                        <span>{{ product_insight }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 색상 차트 -->
-            <div class="col-md-6 mb-4">
-                <div class="chart-container">
-                    <h3 class="chart-title">인기 색상 TOP5</h3>
-                    <div id="color-chart" style="height: 350px;"></div>
-                    <div class="insight-box">
-                        <span class="insight-title">인사이트:</span>
-                        <span>{{ color_insight }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 가격대 차트 -->
-            <div class="col-md-6 mb-4">
-                <div class="chart-container">
-                    <h3 class="chart-title">가격대별 상품 분포</h3>
-                    <div id="price-chart" style="height: 350px;"></div>
-                    <div class="insight-box">
-                        <span class="insight-title">인사이트:</span>
-                        <span>{{ price_insight }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 판매 채널 차트 -->
-            <div class="col-md-6 mb-4">
-                <div class="chart-container">
-                    <h3 class="chart-title">주요 판매 채널</h3>
-                    <div id="channel-chart" style="height: 350px;"></div>
-                    <div class="insight-box">
-                        <span class="insight-title">인사이트:</span>
-                        <span>{{ channel_insight }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 사이즈 분포 차트 -->
-            <div class="col-md-6 mb-4">
-                <div class="chart-container">
-                    <h3 class="chart-title">사이즈 분포</h3>
-                    <div id="size-chart" style="height: 350px;"></div>
-                    <div class="insight-box">
-                        <span class="insight-title">인사이트:</span>
-                        <span>{{ size_insight }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 소재 및 디자인 요소 차트 -->
-            <div class="col-md-6 mb-4">
-                <div class="chart-container">
-                    <h3 class="chart-title">인기 소재 & 디자인 요소</h3>
-                    <div id="material-design-chart" style="height: 350px;"></div>
-                    <div class="insight-box">
-                        <span class="insight-title">인사이트:</span>
-                        <span>{{ material_design_insight }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 베스트셀러 상품 차트 -->
-            <div class="col-md-12 mb-4">
-                <div class="chart-container">
-                    <h3 class="chart-title">베스트셀러 상품</h3>
-                    <div id="bestseller-chart" style="height: 350px;"></div>
+        <!-- 상품 유형 차트 -->
+        <div class="col-md-6 mb-4">
+            <div class="chart-container">
+                <h3 class="chart-title">인기 상품 유형 TOP5</h3>
+                <div id="product-chart" style="height: 350px;"></div>
+                <div class="insight-box">
+                    <span class="insight-title">인사이트:</span>
+                    <span>{{ product_insight }}</span>
                 </div>
             </div>
         </div>
 
+        <!-- 색상 차트 -->
+        <div class="col-md-6 mb-4">
+            <div class="chart-container">
+                <h3 class="chart-title">인기 색상 TOP 10</h3>
+                <div id="color-chart" style="height: 350px;"></div>
+                <div class="insight-box">
+                    <span class="insight-title">인사이트:</span>
+                    <span>{{ color_insight }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 가격대 차트 -->
+        <div class="col-md-6 mb-4">
+            <div class="chart-container">
+                <h3 class="chart-title">가격대별 상품 분포</h3>
+                <div id="price-chart" style="height: 350px;"></div>
+                <div class="insight-box">
+                    <span class="insight-title">인사이트:</span>
+                    <span>{{ price_insight }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 사이즈 분포 차트 (주요 판매 채널 자리로 이동) -->
+        <div class="col-md-6 mb-4">
+            <div class="chart-container">
+                <h3 class="chart-title">사이즈 분포</h3>
+                <div id="size-chart" style="height: 350px;"></div>
+                <div class="insight-box">
+                    <span class="insight-title">인사이트:</span>
+                    <span>{{ size_insight }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 소재 차트 (같은 행) -->
+        <div class="col-md-6 mb-4">
+            <div class="chart-container">
+                <h3 class="chart-title">인기 소재</h3>
+                <div id="material-chart" style="height: 350px;"></div>
+                <div class="insight-box">
+                    <span class="insight-title">인사이트:</span>
+                    <span>{{ material_insight }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 디자인 차트 (같은 행) -->
+        <div class="col-md-6 mb-4">
+            <div class="chart-container">
+                <h3 class="chart-title">인기 디자인 요소</h3>
+                <div id="design-chart" style="height: 350px;"></div>
+                <div class="insight-box">
+                    <span class="insight-title">인사이트:</span>
+                    <span>{{ design_insight }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 판매 채널 차트 (마지막 행) -->
+        <div class="col-md-6 mb-4">
+            <div class="chart-container">
+                <h3 class="chart-title">주요 판매 채널</h3>
+                <div id="channel-chart" style="height: 350px;"></div>
+                <div class="insight-box">
+                    <span class="insight-title">인사이트:</span>
+                    <span>{{ channel_insight }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 베스트셀러 상품 차트 (마지막 행) -->
+        <div class="col-md-6 mb-4">
+            <div class="chart-container">
+                <h3 class="chart-title">베스트셀러 상품</h3>
+                <div id="bestseller-chart" style="height: 350px;"></div>
+                <div class="insight-box">
+                    <span class="insight-title">인사이트:</span>
+                    <span>{{ bestseller_insight }}</span>
+                </div>
+            </div>
+        </div>
         <!-- 실행 가이드 -->
         <div class="guide-container">
             <h2 class="guide-title">엔트리 셀러를 위한 핵심 실행 가이드</h2>
@@ -223,16 +237,21 @@
     <script>
         // 상품 유형 차트
         const productData = {{ product_data|tojson }};
+        // 판매량 기준 내림차순 정렬
+        const sortedProductData = [...productData].sort((a, b) => b.value - a.value).slice(0, 10);
         Plotly.newPlot('product-chart', [{
-            x: productData.map(d => d.value),
-            y: productData.map(d => d.name),
+            x: sortedProductData.map(d => d.value),
+            y: sortedProductData.map(d => d.name),
             type: 'bar',
             orientation: 'h',
             marker: {
                 color: '#0088FE'
             }
         }], {
-            margin: { l: 120, r: 30, t: 30, b: 40 }
+            margin: { l: 120, r: 30, t: 30, b: 40 },
+            yaxis: {
+                autorange: 'reversed' // 판매량이 많은 것이 위에 오도록 함
+            }
         });
 
         // 색상 차트
@@ -276,7 +295,10 @@
                 color: '#FFBB28'
             }
         }], {
-            margin: { l: 50, r: 30, t: 30, b: 80 }
+            margin: { l: 50, r: 30, t: 30, b: 100 }, // 레이블이 많아질 수 있으므로 하단 여백 증가
+            xaxis: {
+                tickangle: -45 // 레이블이 겹치지 않도록 기울임
+            }
         });
 
         // 사이즈 분포 차트
@@ -295,11 +317,11 @@
             margin: { l: 20, r: 20, t: 30, b: 40 }
         });
 
-        // 소재 및 디자인 요소 차트
-        const materialDesignData = {{ material_design_data|tojson }};
-        Plotly.newPlot('material-design-chart', [{
-            x: materialDesignData.map(d => d.name),
-            y: materialDesignData.map(d => d.value),
+        // 소재 차트
+        const materialData = {{ material_data|tojson }};
+        Plotly.newPlot('material-chart', [{
+            x: materialData.map(d => d.name),
+            y: materialData.map(d => d.value),
             type: 'bar',
             marker: {
                 color: '#8884d8'
@@ -308,19 +330,37 @@
             margin: { l: 50, r: 30, t: 30, b: 80 }
         });
 
-        // 베스트셀러 상품 차트
+        // 디자인 차트
+        const designData = {{ design_data|tojson }};
+        Plotly.newPlot('design-chart', [{
+            x: designData.map(d => d.name),
+            y: designData.map(d => d.value),
+            type: 'bar',
+            marker: {
+                color: '#82ca9d'
+            }
+        }], {
+            margin: { l: 50, r: 30, t: 30, b: 80 }
+        });
+
+        // 베스트셀러 상품 차트 - 많이 팔린 것이 위에 오도록 배치
         const bestsellerData = {{ bestseller_data|tojson }};
+        // 데이터를 판매량 기준으로 내림차순 정렬
+        const sortedBestsellerData = [...bestsellerData].sort((a, b) => b.value - a.value);
         Plotly.newPlot('bestseller-chart', [{
-            x: bestsellerData.map(d => d.value),
-            y: bestsellerData.map(d => d.name),
+            x: sortedBestsellerData.map(d => d.value),
+            y: sortedBestsellerData.map(d => d.name),
             type: 'bar',
             orientation: 'h',
             marker: {
                 color: '#FF8042'
             }
         }], {
-            margin: { l: 300, r: 30, t: 30, b: 40 },
-            height: 400
+            margin: { l: 250, r: 30, t: 30, b: 40 }, // 좌측 여백 증가
+            yaxis: {
+                autorange: 'reversed', // 판매량이 많은 것이 위에 오도록 함
+                automargin: true // 레이블이 잘리지 않도록 자동 여백 설정
+            }
         });
     </script>
 </body>

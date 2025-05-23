@@ -401,8 +401,15 @@
         }
 
         @media print {
+            @page {
+                size: auto;
+                margin: 10mm;
+            }
+            
             body {
                 background: white;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
             }
             
             .dashboard-header {
@@ -411,6 +418,8 @@
                 color-adjust: exact;
                 box-shadow: none;
                 border: 2px solid #667eea;
+                page-break-inside: avoid;
+                break-inside: avoid;
             }
             
             .dashboard-title {
@@ -425,6 +434,8 @@
                 border: 2px solid rgba(255, 215, 0, 0.6) !important;
                 -webkit-print-color-adjust: exact;
                 color-adjust: exact;
+                page-break-inside: avoid;
+                break-inside: avoid;
             }
             
             .period-value,
@@ -440,6 +451,46 @@
             .keywords-container {
                 box-shadow: none;
                 border: 1px solid #e2e8f0;
+                page-break-inside: avoid;
+                break-inside: avoid;
+                margin-bottom: 1rem;
+            }
+            
+            .chart-title {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            
+            .row {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            
+            .col-lg-6 {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            
+            /* 차트 내용들이 잘리지 않도록 */
+            .custom-chart {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            
+            .chart-item {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            
+            /* 키워드 섹션이 잘리지 않도록 */
+            .keywords-grid {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            
+            .keyword-section {
+                page-break-inside: avoid;
                 break-inside: avoid;
             }
         }

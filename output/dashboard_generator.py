@@ -1,8 +1,10 @@
 # output/dashboard_generator.py
 """
-비플로우 분석 결과를 바탕으로 HTML 대시보드 생성하는 메인 클래스
+비플로우 분석 결과를 바탕으로 HTML 대시보드 및 PDF 생성하는 메인 클래스
 """
 import webbrowser
+import asyncio
+import os
 from pathlib import Path
 from output.base_generator import BaseGenerator
 from config import Config
@@ -12,7 +14,7 @@ from output.formatters.template_handler import TemplateHandler
 
 
 class DashboardGenerator(BaseGenerator):
-    """비플로우 분석 결과를 바탕으로 HTML 대시보드 생성"""
+    """비플로우 분석 결과를 바탕으로 HTML 대시보드 및 PDF 생성"""
     
     def __init__(self, insights, formatter=None, output_folder='bflow_reports', config=None):
         """
@@ -41,16 +43,17 @@ class DashboardGenerator(BaseGenerator):
         # 템플릿 핸들러
         self.template_handler = TemplateHandler(self.template_folder)
     
-    def generate_dashboard(self, port=None, open_browser=True):
+    def generate_dashboard(self, port=None, open_browser=True, save_pdf=True):
         """
         HTML 대시보드 생성 및 실행
         
         Parameters:
         - port: 대시보드 실행 포트 (None이면 설정에서 가져옴)
         - open_browser: 브라우저 자동 실행 여부
+        - save_pdf: PDF 파일 생성 여부
         
         Returns:
-        - 생성된 대시보드 URL 또는 파일 경로
+        - 생성된 대시보드 파일 경로들의 딕셔너리 {'html': path, 'pdf': path}
         """
         print("HTML 대시보드 생성 중...")
         
@@ -106,16 +109,27 @@ class DashboardGenerator(BaseGenerator):
             
             # HTML 파일 저장
             dashboard_file = self.output_folder / f"dashboard_{self.timestamp}.html"
-            saved_path = self.template_handler.save_html(output, dashboard_file)
+            html_path = self.template_handler.save_html(output, dashboard_file)
             
-            if saved_path:
-                print(f"HTML 대시보드가 생성되었습니다: {saved_path}")
+            result = {}
+            
+            if html_path:
+                print(f"HTML 대시보드가 생성되었습니다: {html_path}")
+                result['html'] = str(html_path)
+                
+                # PDF 생성
+                if save_pdf:
+                    pdf_path = self.generate_pdf_from_html(html_path)
+                    if pdf_path:
+                        result['pdf'] = str(pdf_path)
+                        print(f"PDF 대시보드가 생성되었습니다: {pdf_path}")
+                        print("✅ 웹페이지 전체가 하나의 연속된 PDF로 저장되었습니다")
                 
                 # 브라우저에서 열기
                 if open_browser:
-                    webbrowser.open(f"file://{saved_path.resolve()}")
+                    webbrowser.open(f"file://{html_path.resolve()}")
                 
-                return str(saved_path)
+                return result
             else:
                 print("대시보드 파일 저장 실패")
                 return None
@@ -125,3 +139,174 @@ class DashboardGenerator(BaseGenerator):
             import traceback
             traceback.print_exc()
             return None
+
+    def generate_pdf_from_html(self, html_path):
+        """
+        HTML 파일을 PDF로 변환
+        
+        Parameters:
+        - html_path: HTML 파일 경로
+        
+        Returns:
+        - 생성된 PDF 파일 경로
+        """
+        try:
+            # PDF 파일 경로 생성
+            pdf_path = html_path.with_suffix('.pdf')
+            
+            # Playwright를 사용한 PDF 생성 시도
+            pdf_result = self._generate_pdf_with_playwright(html_path, pdf_path)
+            
+            if pdf_result:
+                return pdf_result
+            
+            # Playwright 실패 시 WeasyPrint로 대체
+            print("Playwright PDF 생성 실패, WeasyPrint로 시도...")
+            return self._generate_pdf_with_weasyprint(html_path, pdf_path)
+            
+        except Exception as e:
+            print(f"PDF 생성 중 오류 발생: {e}")
+            return None
+
+    def _generate_pdf_with_playwright(self, html_path, pdf_path):
+        """
+        Playwright를 사용하여 웹페이지 전체를 하나의 PDF로 생성
+        """
+        try:
+            from playwright.sync_api import sync_playwright
+            
+            with sync_playwright() as p:
+                # 브라우저 시작 (더 큰 뷰포트 설정)
+                browser = p.chromium.launch()
+                page = browser.new_page(viewport={'width': 1200, 'height': 800})
+                
+                # HTML 파일 로드
+                page.goto(f"file://{html_path.resolve()}")
+                
+                # 페이지가 완전히 로드될 때까지 대기
+                page.wait_for_load_state('networkidle')
+                
+                # 차트가 렌더링될 시간을 줌
+                page.wait_for_timeout(3000)
+                
+                # 페이지의 실제 크기 측정
+                content_size = page.evaluate("""
+                    () => {
+                        const body = document.body;
+                        const html = document.documentElement;
+                        const height = Math.max(
+                            body.scrollHeight,
+                            body.offsetHeight,
+                            html.clientHeight,
+                            html.scrollHeight,
+                            html.offsetHeight
+                        );
+                        const width = Math.max(
+                            body.scrollWidth,
+                            body.offsetWidth,
+                            html.clientWidth,
+                            html.scrollWidth,
+                            html.offsetWidth
+                        );
+                        return { width, height };
+                    }
+                """)
+                
+                print(f"페이지 크기: {content_size['width']}x{content_size['height']}px")
+                
+                # 웹페이지 전체를 하나의 PDF로 생성 (용지 크기를 콘텐츠에 맞춤)
+                page.pdf(
+                    path=str(pdf_path),
+                    width=f"{content_size['width']}px",
+                    height=f"{content_size['height']}px",
+                    print_background=True,
+                    margin={
+                        'top': '0px',
+                        'bottom': '0px', 
+                        'left': '0px',
+                        'right': '0px'
+                    },
+                    prefer_css_page_size=False  # CSS 페이지 크기 무시
+                )
+                
+                browser.close()
+                return pdf_path
+                
+        except ImportError:
+            print("Playwright가 설치되지 않았습니다. pip install playwright && playwright install 실행하세요.")
+            return None
+        except Exception as e:
+            print(f"Playwright PDF 생성 오류: {e}")
+            return None
+
+    def _generate_pdf_with_weasyprint(self, html_path, pdf_path):
+        """
+        WeasyPrint를 사용하여 웹페이지 전체를 하나의 PDF로 생성 (백업 방법)
+        """
+        try:
+            import weasyprint
+            from weasyprint import CSS, HTML
+            
+            # HTML 파일 읽기
+            with open(html_path, 'r', encoding='utf-8') as f:
+                html_content = f.read()
+            
+            # 페이지 분할을 방지하는 CSS 추가
+            additional_css = CSS(string="""
+                @page {
+                    size: auto;
+                    margin: 0;
+                }
+                
+                body {
+                    margin: 0;
+                    padding: 20px;
+                }
+                
+                * {
+                    page-break-inside: avoid !important;
+                    break-inside: avoid !important;
+                }
+                
+                .chart-container,
+                .keywords-container,
+                .dashboard-header {
+                    page-break-inside: avoid !important;
+                    break-inside: avoid !important;
+                }
+                
+                .row {
+                    page-break-inside: avoid !important;
+                    break-inside: avoid !important;
+                }
+            """)
+            
+            # HTML을 PDF로 변환
+            html_doc = HTML(string=html_content, base_url=str(html_path.parent))
+            html_doc.write_pdf(str(pdf_path), stylesheets=[additional_css])
+            
+            return pdf_path
+            
+        except ImportError:
+            print("WeasyPrint가 설치되지 않았습니다. pip install weasyprint 실행하세요.")
+            return None
+        except Exception as e:
+            print(f"WeasyPrint PDF 생성 오류: {e}")
+            return None
+
+    def install_playwright_browsers(self):
+        """
+        Playwright 브라우저 설치 (최초 설정용)
+        """
+        try:
+            import subprocess
+            result = subprocess.run(['playwright', 'install'], capture_output=True, text=True)
+            if result.returncode == 0:
+                print("Playwright 브라우저 설치 완료")
+                return True
+            else:
+                print(f"Playwright 브라우저 설치 실패: {result.stderr}")
+                return False
+        except Exception as e:
+            print(f"Playwright 브라우저 설치 중 오류: {e}")
+            return False

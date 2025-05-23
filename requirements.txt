@@ -5,12 +5,7 @@ scipy
 matplotlib
 seaborn
 plotly
-dash
-dash-bootstrap-components
-flask
-openpyxl
-xlrd
-xlsxwriter
 jinja2
 python-dateutil
-markdown
+openpyxl
+xlrd

@@ -3,421 +3,836 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>엔트리 셀러 인사이트 대시보드</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <title>상품 판매 분석 대시보드</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: #f8f9fa;
+        :root {
+            --primary: #2563eb;
+            --primary-light: #3b82f6;
+            --secondary: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #06b6d4;
+            --purple: #8b5cf6;
+            --pink: #ec4899;
+            
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
         }
-        .dashboard-header {
-            background-color: #ffffff;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            border-radius: 0.25rem;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        }
-        .dashboard-title {
+
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-900);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2.5rem 2rem;
+            margin-bottom: 2rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="80" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="70" cy="70" r="1.2" fill="rgba(255,255,255,0.1)"/></svg>');
+            pointer-events: none;
+        }
+
+        .dashboard-title {
+            margin: 0 0 1.5rem 0;
             font-weight: 700;
-            color: #212529;
+            font-size: 2.5rem;
+            color: white;
+            line-height: 1.2;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 1;
         }
-        .dashboard-subtitle {
-            margin-top: 0.5rem;
-            color: #6c757d;
+
+        .dashboard-title i {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-right: 0.5rem;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
         }
+
+        /* 통합된 정보 컨테이너 */
+        .info-container {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 통합된 분석 기간 */
+        .period-unified {
+            background: transparent;
+            backdrop-filter: none;
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            border-radius: 20px;
+            padding: 1rem 1.5rem;
+            text-align: center;
+            min-width: 200px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .period-unified:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 215, 0, 0.6);
+        }
+
+        .period-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+
+        .period-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+            margin: 0;
+        }
+
+        /* 총 주문건수 통계 */
+        .orders-stat {
+            background: transparent;
+            backdrop-filter: none;
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            border-radius: 20px;
+            padding: 1rem 1.5rem;
+            text-align: center;
+            min-width: 200px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .orders-stat:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 215, 0, 0.6);
+        }
+
+        .orders-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+
+        .orders-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+            margin: 0;
+        }
+
         .chart-container {
-            background-color: #ffffff;
-            border-radius: 0.25rem;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-            padding: 1rem;
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            padding: 0;
             margin-bottom: 1.5rem;
             height: 100%;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
         }
+
         .chart-title {
-            margin-top: 0;
-            margin-bottom: 1rem;
-            font-size: 1.25rem;
+            margin: 0 0 1.5rem 0;
+            font-size: 1.125rem;
             font-weight: 600;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1rem 1.5rem;
+            border-radius: 16px 16px 0 0;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
         }
+
+        .chart-title::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="15" cy="15" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="85" cy="30" r="0.8" fill="rgba(255,255,255,0.1)"/><circle cx="30" cy="85" r="0.6" fill="rgba(255,255,255,0.1)"/></svg>');
+            pointer-events: none;
+        }
+
+        .chart-title i {
+            font-size: 1rem;
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+            position: relative;
+            z-index: 1;
+        }
+
+        .chart-content {
+            padding: 1.5rem;
+        }
+
         .insight-box {
-            background-color: #e9f7fe;
-            border-radius: 0.25rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
             padding: 0.75rem;
-            margin-top: 1rem;
+            margin-top: 1.25rem;
             font-size: 0.875rem;
+            border-left: 4px solid #2563eb;
         }
+
         .insight-title {
             font-weight: 600;
             margin-right: 0.5rem;
-            color: #0057b8;
+            color: #2563eb;
         }
-        .guide-container {
-            background-color: #f0f8ff;
-            border-radius: 0.25rem;
-            padding: 1.5rem;
-            margin-top: 1.5rem;
-            margin-bottom: 3rem;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        }
-        .guide-title {
-            color: #0057b8;
-            font-weight: 700;
+
+        /* 커스텀 차트 스타일 */
+        .custom-chart {
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
             margin-bottom: 1rem;
         }
-        .guide-section {
-            background-color: #ffffff;
-            border-radius: 0.25rem;
-            padding: 1rem;
+
+        .chart-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            min-height: 32px;
+        }
+
+        .chart-label {
+            min-width: 280px;
+            max-width: 280px;
+            font-size: 0.875rem;
+            color: #475569;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .chart-bar {
+            flex: 1;
+            height: 20px;
+            background: #f1f5f9;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-fill {
             height: 100%;
+            border-radius: 10px;
+            position: relative;
+            transition: width 0.8s ease;
         }
-        .guide-section-title {
-            color: #0057b8;
+
+        .chart-value {
+            min-width: 120px;
+            text-align: right;
+            font-size: 0.875rem;
             font-weight: 600;
-            font-size: 1.1rem;
+            color: #475569;
+            flex-shrink: 0;
+        }
+
+        /* 키워드 섹션 개선 */
+        .keywords-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .keywords-title {
+            color: #0f172a;
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .keywords-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .keyword-section {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .keyword-section-title {
+            font-weight: 600;
+            font-size: 0.875rem;
             margin-bottom: 0.75rem;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-        .guide-list {
-            padding-left: 1.25rem;
-            margin-bottom: 0;
+
+        .keyword-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.375rem;
         }
-        .guide-list li {
-            margin-bottom: 0.5rem;
+
+        .keyword-tag {
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #475569;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .dashboard-title {
+                font-size: 1.75rem;
+            }
+            
+            .dashboard-header {
+                padding: 2rem 1.5rem;
+            }
+            
+            .info-container {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1.5rem;
+            }
+            
+            .period-unified,
+            .orders-stat {
+                font-size: 0.9rem;
+                padding: 0.8rem 1.2rem;
+                min-width: 180px;
+            }
+            
+            .period-value,
+            .orders-value {
+                font-size: 1.4rem;
+            }
+            
+            .keywords-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-label {
+                min-width: 200px;
+                max-width: 200px;
+                font-size: 0.75rem;
+            }
+            
+            .chart-value {
+                min-width: 100px;
+                font-size: 0.75rem;
+            }
+            
+            .custom-chart {
+                height: 350px;
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .dashboard-header {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+                box-shadow: none;
+                border: 2px solid #667eea;
+            }
+            
+            .dashboard-title {
+                color: white !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            
+            .period-unified,
+            .orders-stat {
+                background: transparent !important;
+                border: 2px solid rgba(255, 215, 0, 0.6) !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            
+            .period-value,
+            .orders-value,
+            .period-label,
+            .orders-label {
+                color: white !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            
+            .chart-container,
+            .keywords-container {
+                box-shadow: none;
+                border: 1px solid #e2e8f0;
+                break-inside: avoid;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container my-4">
+    <div class="container-fluid px-4 py-4">
         <div class="dashboard-header">
-            <h1 class="dashboard-title">{{ title }}</h1>
-            <p class="dashboard-subtitle">{{ subtitle }}</p>
-        </div>
-
-        <div class="row">
-        <!-- 상품 유형 차트 -->
-        <div class="col-md-6 mb-4">
-            <div class="chart-container">
-                <h3 class="chart-title">인기 상품 유형 TOP5</h3>
-                <div id="product-chart" style="height: 350px;"></div>
-                <div class="insight-box">
-                    <span class="insight-title">인사이트:</span>
-                    <span>{{ product_insight }}</span>
+            <h1 class="dashboard-title">
+                <i class="bi bi-graph-up-arrow"></i>
+                상품 판매 분석 대시보드
+            </h1>
+            
+            <div class="info-container">
+                <!-- 통합된 분석 기간 -->
+                <div class="period-unified">
+                    <div class="period-value">📅 분석 기간: {{ subtitle }}</div>
                 </div>
-            </div>
-        </div>
 
-        <!-- 색상 차트 -->
-        <div class="col-md-6 mb-4">
-            <div class="chart-container">
-                <h3 class="chart-title">인기 색상 TOP 10</h3>
-                <div id="color-chart" style="height: 350px;"></div>
-                <div class="insight-box">
-                    <span class="insight-title">인사이트:</span>
-                    <span>{{ color_insight }}</span>
+                <!-- 총 주문건수 -->
+                <div class="orders-stat">
+                    <div class="orders-value">🛍️ 여성의류 총 주문 건수: {{ total_orders }}</div>
                 </div>
             </div>
         </div>
 
-        <!-- 가격대 차트 -->
-        <div class="col-md-6 mb-4">
-            <div class="chart-container">
-                <h3 class="chart-title">가격대별 상품 분포</h3>
-                <div id="price-chart" style="height: 350px;"></div>
-                <div class="insight-box">
-                    <span class="insight-title">인사이트:</span>
-                    <span>{{ price_insight }}</span>
+        <div class="row g-3">
+            <!-- 상품 유형 차트 -->
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h3 class="chart-title">
+                        <i class="bi bi-tags"></i>
+                        인기 상품 유형 TOP10
+                    </h3>
+                    <div class="chart-content">
+                        <div class="custom-chart" id="product-chart-custom"></div>
+                        <div class="insight-box">
+                            <span class="insight-title">
+                                <i class="bi bi-lightbulb"></i>
+                                인사이트:
+                            </span>
+                            <span>{{ product_insight }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 색상 차트 -->
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h3 class="chart-title">
+                        <i class="bi bi-palette"></i>
+                        인기 색상 TOP10
+                    </h3>
+                    <div class="chart-content">
+                        <div class="custom-chart" id="color-chart-custom"></div>
+                        <div class="insight-box">
+                            <span class="insight-title">
+                                <i class="bi bi-lightbulb"></i>
+                                인사이트:
+                            </span>
+                            <span>{{ color_insight }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 가격대 차트 -->
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h3 class="chart-title">
+                        <i class="bi bi-currency-dollar"></i>
+                        가격대별 상품 분포
+                    </h3>
+                    <div class="chart-content">
+                        <div class="custom-chart" id="price-chart-custom"></div>
+                        <div class="insight-box">
+                            <span class="insight-title">
+                                <i class="bi bi-lightbulb"></i>
+                                인사이트:
+                            </span>
+                            <span>{{ price_insight }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 사이즈 분포 차트 -->
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h3 class="chart-title">
+                        <i class="bi bi-rulers"></i>
+                        사이즈 분포 TOP10
+                    </h3>
+                    <div class="chart-content">
+                        <div class="custom-chart" id="size-chart-custom"></div>
+                        <div class="insight-box">
+                            <span class="insight-title">
+                                <i class="bi bi-lightbulb"></i>
+                                인사이트:
+                            </span>
+                            <span>{{ size_insight }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 소재 차트 -->
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h3 class="chart-title">
+                        <i class="bi bi-layers"></i>
+                        인기 소재 TOP10
+                    </h3>
+                    <div class="chart-content">
+                        <div class="custom-chart" id="material-chart-custom"></div>
+                        <div class="insight-box">
+                            <span class="insight-title">
+                                <i class="bi bi-lightbulb"></i>
+                                인사이트:
+                            </span>
+                            <span>{{ material_insight }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 디자인 차트 -->
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h3 class="chart-title">
+                        <i class="bi bi-brush"></i>
+                        인기 디자인 요소 TOP10
+                    </h3>
+                    <div class="chart-content">
+                        <div class="custom-chart" id="design-chart-custom"></div>
+                        <div class="insight-box">
+                            <span class="insight-title">
+                                <i class="bi bi-lightbulb"></i>
+                                인사이트:
+                            </span>
+                            <span>{{ design_insight }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 판매 채널 차트 -->
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h3 class="chart-title">
+                        <i class="bi bi-shop"></i>
+                        주요 판매 채널 TOP10
+                    </h3>
+                    <div class="chart-content">
+                        <div class="custom-chart" id="channel-chart-custom"></div>
+                        <div class="insight-box">
+                            <span class="insight-title">
+                                <i class="bi bi-lightbulb"></i>
+                                인사이트:
+                            </span>
+                            <span>{{ channel_insight }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 베스트셀러 상품 차트 -->
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h3 class="chart-title">
+                        <i class="bi bi-trophy"></i>
+                        베스트셀러 상품 TOP10
+                    </h3>
+                    <div class="chart-content">
+                        <div class="custom-chart" id="bestseller-chart-custom"></div>
+                        <div class="insight-box">
+                            <span class="insight-title">
+                                <i class="bi bi-lightbulb"></i>
+                                인사이트:
+                            </span>
+                            <span>{{ bestseller_insight }}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- 사이즈 분포 차트 (주요 판매 채널 자리로 이동) -->
-        <div class="col-md-6 mb-4">
-            <div class="chart-container">
-                <h3 class="chart-title">사이즈 분포</h3>
-                <div id="size-chart" style="height: 350px;"></div>
-                <div class="insight-box">
-                    <span class="insight-title">인사이트:</span>
-                    <span>{{ size_insight }}</span>
+        <!-- 상품 속성 키워드 (개선된 레이아웃) -->
+        <div class="keywords-container">
+            <h2 class="keywords-title">
+                <i class="bi bi-tags-fill"></i>
+                상품 속성 키워드
+            </h2>
+            <div class="keywords-grid">
+                <!-- 색상 키워드 -->
+                <div class="keyword-section">
+                    <h5 class="keyword-section-title">
+                        <i class="bi bi-palette2" style="color: #ec4899;"></i>
+                        색상
+                    </h5>
+                    <div class="keyword-tags">
+                        {% for color in color_keywords[:12] %}
+                            <span class="keyword-tag">{{ color }}</span>
+                        {% endfor %}
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- 소재 차트 (같은 행) -->
-        <div class="col-md-6 mb-4">
-            <div class="chart-container">
-                <h3 class="chart-title">인기 소재</h3>
-                <div id="material-chart" style="height: 350px;"></div>
-                <div class="insight-box">
-                    <span class="insight-title">인사이트:</span>
-                    <span>{{ material_insight }}</span>
+                <!-- 소재 키워드 -->
+                <div class="keyword-section">
+                    <h5 class="keyword-section-title">
+                        <i class="bi bi-layers-fill" style="color: #06b6d4;"></i>
+                        소재
+                    </h5>
+                    <div class="keyword-tags">
+                        {% for material in material_keywords[:12] %}
+                            <span class="keyword-tag">{{ material }}</span>
+                        {% endfor %}
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- 디자인 차트 (같은 행) -->
-        <div class="col-md-6 mb-4">
-            <div class="chart-container">
-                <h3 class="chart-title">인기 디자인 요소</h3>
-                <div id="design-chart" style="height: 350px;"></div>
-                <div class="insight-box">
-                    <span class="insight-title">인사이트:</span>
-                    <span>{{ design_insight }}</span>
+                <!-- 디자인 키워드 -->
+                <div class="keyword-section">
+                    <h5 class="keyword-section-title">
+                        <i class="bi bi-brush-fill" style="color: #10b981;"></i>
+                        디자인
+                    </h5>
+                    <div class="keyword-tags">
+                        {% for design in design_keywords[:12] %}
+                            <span class="keyword-tag">{{ design }}</span>
+                        {% endfor %}
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- 판매 채널 차트 (마지막 행) -->
-        <div class="col-md-6 mb-4">
-            <div class="chart-container">
-                <h3 class="chart-title">주요 판매 채널</h3>
-                <div id="channel-chart" style="height: 350px;"></div>
-                <div class="insight-box">
-                    <span class="insight-title">인사이트:</span>
-                    <span>{{ channel_insight }}</span>
+                <!-- 핏 키워드 -->
+                <div class="keyword-section">
+                    <h5 class="keyword-section-title">
+                        <i class="bi bi-scissors" style="color: #f59e0b;"></i>
+                        핏
+                    </h5>
+                    <div class="keyword-tags">
+                        {% for style in style_keywords[:12] %}
+                            <span class="keyword-tag">{{ style }}</span>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- 베스트셀러 상품 차트 (마지막 행) -->
-        <div class="col-md-6 mb-4">
-            <div class="chart-container">
-                <h3 class="chart-title">베스트셀러 상품</h3>
-                <div id="bestseller-chart" style="height: 350px;"></div>
-                <div class="insight-box">
-                    <span class="insight-title">인사이트:</span>
-                    <span>{{ bestseller_insight }}</span>
-                </div>
-            </div>
-        </div>
-        <!-- 실행 가이드 -->
-        <div class="guide-container">
-            <h2 class="guide-title">상품 속성 키워드</h2>
-            <div class="row">
-              <!-- 색상 키워드 -->
-              <div class="col-md-6 mb-4">
-                <div class="guide-section">
-                  <h5 class="attribute-title">색상 키워드</h5>
-                  <div class="attribute-tags">
-                    {% for color in color_keywords %}
-                      <span class="attribute-tag"
-                            style="background-color: #f8f9fa;
-                                   border: 1px solid #dee2e6;
-                                   border-radius: 16px;
-                                   padding: 5px 12px;
-                                   margin: 5px;
-                                   display: inline-block;">
-                        {{ color }}
-                      </span>
-                    {% endfor %}
-                  </div>
-                </div>
-              </div>
-          
-              <!-- 소재 키워드 -->
-              <div class="col-md-6 mb-4">
-                <div class="guide-section">
-                  <h5 class="attribute-title">소재 키워드</h5>
-                  <div class="attribute-tags">
-                    {% for material in material_keywords %}
-                      <span class="attribute-tag"
-                            style="background-color: #e6f3ff;
-                                   border: 1px solid #b8daff;
-                                   border-radius: 16px;
-                                   padding: 5px 12px;
-                                   margin: 5px;
-                                   display: inline-block;">
-                        {{ material }}
-                      </span>
-                    {% endfor %}
-                  </div>
-                </div>
-              </div>
-          
-              <!-- 디자인 키워드 -->
-              <div class="col-md-6 mb-4">
-                <div class="guide-section">
-                  <h5 class="attribute-title">디자인 키워드</h5>
-                  <div class="attribute-tags">
-                    {% for design in design_keywords %}
-                      <span class="attribute-tag"
-                            style="background-color: #e7f5ea;
-                                   border: 1px solid #b7dfbb;
-                                   border-radius: 16px;
-                                   padding: 5px 12px;
-                                   margin: 5px;
-                                   display: inline-block;">
-                        {{ design }}
-                      </span>
-                    {% endfor %}
-                  </div>
-                </div>
-              </div>
-          
-              <!-- 핏 키워드 -->
-              <div class="col-md-6 mb-4">
-                <div class="guide-section">
-                  <h5 class="attribute-title">핏 키워드</h5>
-                  <div class="attribute-tags">
-                    {% for style in style_keywords %}
-                      <span class="attribute-tag"
-                            style="background-color: #fef6e7;
-                                   border: 1px solid #fce5bd;
-                                   border-radius: 16px;
-                                   padding: 5px 12px;
-                                   margin: 5px;
-                                   display: inline-block;">
-                        {{ style }}
-                      </span>
-                    {% endfor %}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>          
+    <!-- 데이터 렌더링 -->
+    <script type="application/json" id="chart-data">
+    {
+        "productData": {{ product_data|tojson }},
+        "colorData": {{ color_data|tojson }},
+        "priceData": {{ price_data|tojson }},
+        "sizeData": {{ size_data|tojson }},
+        "materialData": {{ material_data|tojson }},
+        "designData": {{ design_data|tojson }},
+        "channelData": {{ channel_data|tojson }},
+        "bestsellerData": {{ bestseller_data|tojson }}
+    }
+    </script>
+
+    <script>
+        // 데이터 로드
+        const chartDataElement = document.getElementById('chart-data');
+        let chartData;
         
-        <style>
-            .attribute-title {
-                font-weight: 600;
-                margin-bottom: 10px;
-                color: #495057;
+        try {
+            chartData = JSON.parse(chartDataElement.textContent);
+        } catch (error) {
+            console.error('데이터 파싱 오류:', error);
+            // 테스트 데이터 사용
+            chartData = {
+                productData: [
+                    {name: '티셔츠', value: 150},
+                    {name: '바지', value: 120},
+                    {name: '원피스', value: 100},
+                    {name: '자켓', value: 80},
+                    {name: '스커트', value: 60}
+                ],
+                colorData: [
+                    {name: '블랙', value: 200},
+                    {name: '화이트', value: 180},
+                    {name: '네이비', value: 150},
+                    {name: '그레이', value: 120},
+                    {name: '베이지', value: 100}
+                ],
+                priceData: [],
+                sizeData: [],
+                materialData: [],
+                designData: [],
+                channelData: [],
+                bestsellerData: []
+            };
+        }
+        
+        const productData = chartData.productData || [];
+        const colorData = chartData.colorData || [];
+        const priceData = chartData.priceData || [];
+        const sizeData = chartData.sizeData || [];
+        const materialData = chartData.materialData || [];
+        const designData = chartData.designData || [];
+        const channelData = chartData.channelData || [];
+        const bestsellerData = chartData.bestsellerData || [];
+
+        // 막대 차트 생성 함수
+        function createBarChart(containerId, data, maxItems = 10) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            const sortedData = [...data].sort((a, b) => b.value - a.value).slice(0, maxItems);
+            const maxValue = Math.max(...sortedData.map(d => d.value));
+            const total = sortedData.reduce((sum, item) => sum + item.value, 0);
+            
+            const colors = [
+                'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
+                'linear-gradient(135deg, #10b981 0%, #22c55e 100%)',
+                'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
+                'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)',
+                'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)',
+                'linear-gradient(135deg, #06b6d4 0%, #22d3ee 100%)',
+                'linear-gradient(135deg, #ef4444 0%, #fb7185 100%)',
+                'linear-gradient(135deg, #64748b 0%, #94a3b8 100%)',
+                'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
+            ];
+            
+            // 상품명 줄이기 함수
+            function truncateProductName(name) {
+                // 베스트셀러의 경우 브랜드명과 상품명을 분리
+                if (name.includes(' / ')) {
+                    const parts = name.split(' / ');
+                    const brand = parts[0];
+                    const productName = parts[1];
+                    
+                    // 브랜드명 + 축약된 상품명 (더 길게 표시)
+                    if (productName.length > 50) {
+                        return `${brand} / ${productName.substring(0, 50)}...`;
+                    }
+                    return name;
+                }
+                
+                // 일반 상품명 축약 (더 길게 표시)
+                if (name.length > 55) {
+                    return name.substring(0, 55) + '...';
+                }
+                return name;
             }
             
-            .attribute-tags {
-                display: flex;
-                flex-wrap: wrap;
-                margin-left: -5px;
-                margin-right: -5px;
-            }
-        </style>
+            let html = '';
+            sortedData.forEach((item, index) => {
+                const percentage = ((item.value / total) * 100).toFixed(1);
+                const width = (item.value / maxValue) * 100;
+                const color = colors[index % colors.length];
+                const displayName = truncateProductName(item.name);
+                
+                html += `
+                    <div class="chart-item">
+                        <div class="chart-label" title="${item.name}">${displayName}</div>
+                        <div class="chart-bar">
+                            <div class="chart-fill" style="width: ${width}%; background: ${color};"></div>
+                        </div>
+                        <div class="chart-value">${item.value.toLocaleString()} (${percentage}%)</div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
 
-    <!-- 스크립트 -->
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script>
-        // 상품 유형 차트
-        const productData = {{ product_data|tojson }};
-        // 판매량 기준 내림차순 정렬
-        const sortedProductData = [...productData].sort((a, b) => b.value - a.value).slice(0, 10);
-        Plotly.newPlot('product-chart', [{
-            x: sortedProductData.map(d => d.value),
-            y: sortedProductData.map(d => d.name),
-            type: 'bar',
-            orientation: 'h',
-            marker: {
-                color: '#0088FE'
-            }
-        }], {
-            margin: { l: 120, r: 30, t: 30, b: 40 },
-            yaxis: {
-                autorange: 'reversed' // 판매량이 많은 것이 위에 오도록 함
-            }
-        });
-
-        // 색상 차트
-        const colorData = {{ color_data|tojson }};
-        Plotly.newPlot('color-chart', [{
-            values: colorData.map(d => d.value),
-            labels: colorData.map(d => d.name),
-            type: 'pie',
-            hole: 0.4,
-            marker: {
-                colors: ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658']
-            },
-            textinfo: 'label+percent',
-            textposition: 'inside'
-        }], {
-            margin: { l: 20, r: 20, t: 30, b: 40 }
-        });
-
-        // 가격대 차트
-        const priceData = {{ price_data|tojson }};
-        Plotly.newPlot('price-chart', [{
-            x: priceData.map(d => d.name),
-            y: priceData.map(d => d.value),
-            type: 'bar',
-            marker: {
-                color: '#00C49F'
-            },
-            text: priceData.map(d => d.percent + '%'),
-            textposition: 'outside'
-        }], {
-            margin: { l: 50, r: 30, t: 30, b: 80 }
-        });
-
-        // 판매 채널 차트
-        const channelData = {{ channel_data|tojson }};
-        Plotly.newPlot('channel-chart', [{
-            x: channelData.map(d => d.name),
-            y: channelData.map(d => d.value),
-            type: 'bar',
-            marker: {
-                color: '#FFBB28'
-            }
-        }], {
-            margin: { l: 50, r: 30, t: 30, b: 100 }, // 레이블이 많아질 수 있으므로 하단 여백 증가
-            xaxis: {
-                tickangle: -45 // 레이블이 겹치지 않도록 기울임
-            }
-        });
-
-        // 사이즈 분포 차트
-        const sizeData = {{ size_data|tojson }};
-        Plotly.newPlot('size-chart', [{
-            values: sizeData.map(d => d.value),
-            labels: sizeData.map(d => d.name),
-            type: 'pie',
-            hole: 0.4,
-            marker: {
-                colors: ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8']
-            },
-            textinfo: 'label+percent',
-            textposition: 'inside'
-        }], {
-            margin: { l: 20, r: 20, t: 30, b: 40 }
-        });
-
-        // 소재 차트
-        const materialData = {{ material_data|tojson }};
-        Plotly.newPlot('material-chart', [{
-            x: materialData.map(d => d.name),
-            y: materialData.map(d => d.value),
-            type: 'bar',
-            marker: {
-                color: '#8884d8'
-            }
-        }], {
-            margin: { l: 50, r: 30, t: 30, b: 80 }
-        });
-
-        // 디자인 차트
-        const designData = {{ design_data|tojson }};
-        Plotly.newPlot('design-chart', [{
-            x: designData.map(d => d.name),
-            y: designData.map(d => d.value),
-            type: 'bar',
-            marker: {
-                color: '#82ca9d'
-            }
-        }], {
-            margin: { l: 50, r: 30, t: 30, b: 80 }
-        });
-
-        // 베스트셀러 상품 차트 - 많이 팔린 것이 위에 오도록 배치
-        const bestsellerData = {{ bestseller_data|tojson }};
-        // 데이터를 판매량 기준으로 내림차순 정렬
-        const sortedBestsellerData = [...bestsellerData].sort((a, b) => b.value - a.value);
-        Plotly.newPlot('bestseller-chart', [{
-            x: sortedBestsellerData.map(d => d.value),
-            y: sortedBestsellerData.map(d => d.name),
-            type: 'bar',
-            orientation: 'h',
-            marker: {
-                color: '#FF8042'
-            }
-        }], {
-            margin: { l: 250, r: 30, t: 30, b: 40 }, // 좌측 여백 증가
-            yaxis: {
-                autorange: 'reversed', // 판매량이 많은 것이 위에 오도록 함
-                automargin: true // 레이블이 잘리지 않도록 자동 여백 설정
+        // 차트 생성
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('페이지 로드 완료');
+            
+            // 데이터 확인
+            console.log('productData:', productData);
+            console.log('colorData:', colorData);
+            
+            // 모든 차트를 막대 차트로 생성 (TOP10)
+            try {
+                createBarChart('product-chart-custom', productData, 10);
+                createBarChart('color-chart-custom', colorData, 10);
+                createBarChart('price-chart-custom', priceData, 10);
+                createBarChart('size-chart-custom', sizeData, 10);
+                createBarChart('material-chart-custom', materialData, 10);
+                createBarChart('design-chart-custom', designData, 10);
+                createBarChart('channel-chart-custom', channelData, 10);
+                createBarChart('bestseller-chart-custom', bestsellerData, 10);
+                console.log('모든 차트 생성 완료');
+            } catch (error) {
+                console.error('차트 생성 오류:', error);
             }
         });
     </script>

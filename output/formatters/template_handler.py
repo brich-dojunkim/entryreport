@@ -1,28 +1,24 @@
 # output/formatters/template_handler.py
 """
-Common Template Handler for HTML and Excel generation.
-Uses Jinja2 for HTML, and ExcelFormatter for Excel.
+HTML 템플릿 핸들러 - Jinja2를 사용한 HTML 생성
 """
 from pathlib import Path
 import json
 from jinja2 import Environment, FileSystemLoader
-from output.formatters.excel_formatter import ExcelFormatter
 
 class TemplateHandler:
     """
-    공용 템플릿 처리 클래스 (HTML 렌더링 & 엑셀 출력)
+    HTML 템플릿 처리 클래스
     """
-    def __init__(self, template_folder, formatter=None):
+    def __init__(self, template_folder):
         """
         템플릿 처리기 초기화
         
         Parameters:
         - template_folder: 템플릿 파일이 있는 폴더 경로
-        - formatter: InsightsFormatter 인스턴스 (선택적)
         """
         self.template_folder = Path(template_folder)
         self.env = Environment(loader=FileSystemLoader(self.template_folder))
-        self.excel_formatter = ExcelFormatter(formatter)
     
     def render_template(self, template_name, **context):
         """
@@ -67,16 +63,3 @@ class TemplateHandler:
         except Exception as e:
             print(f"HTML 파일 저장 중 오류 발생: {e}")
             return None
-    
-    def save_excel(self, template_vars, output_path):
-        """
-        템플릿 변수를 엑셀 파일로 저장
-        
-        Parameters:
-        - template_vars: 템플릿 변수
-        - output_path: 저장할 파일 경로
-        
-        Returns:
-        - 저장된 파일 경로
-        """
-        return self.excel_formatter.generate_excel(template_vars, output_path)

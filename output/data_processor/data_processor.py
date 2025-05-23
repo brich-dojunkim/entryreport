@@ -62,7 +62,7 @@ class DataProcessor:
 
         # 통일된 타이틀/부제
         template_vars['title'] = "엔트리 셀러 통합 인사이트 보고서"
-        template_vars['subtitle'] = f"분석 기간: {self.insights.get('start_date')} ~ {self.insights.get('end_date')}"
+        template_vars['subtitle'] = f"{self.insights.get('start_date')} ~ {self.insights.get('end_date')}"
 
         # (2) 차트 데이터 (대시보드용)
         chart_data = self.chart_processor.generate_chart_data()  # product_data, color_data, ...

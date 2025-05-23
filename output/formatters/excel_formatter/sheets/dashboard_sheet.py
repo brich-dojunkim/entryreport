@@ -341,13 +341,23 @@ def create_dashboard_sheet(writer, template_vars):
         
         # 첫 번째 열 키워드
         for i, kw in enumerate(kw_column_a):
-            worksheet.write(f'A{guide_row + i}', f"• {kw.get('name', '')}", guide_item_format)
-            worksheet.write(f'B{guide_row + i}', kw.get('description', ''), guide_item_format)
+            # 이 부분을 수정 - 문자열과 딕셔너리 모두 처리
+            if isinstance(kw, dict):
+                worksheet.write(f'A{guide_row + i}', f"• {kw.get('name', '')}", guide_item_format)
+                worksheet.write(f'B{guide_row + i}', kw.get('description', ''), guide_item_format)
+            else:
+                worksheet.write(f'A{guide_row + i}', f"• {kw}", guide_item_format)
+                worksheet.write(f'B{guide_row + i}', "", guide_item_format)
         
         # 두 번째 열 키워드
         for i, kw in enumerate(kw_column_b):
-            worksheet.write(f'C{guide_row + i}', f"• {kw.get('name', '')}", guide_item_format)
-            worksheet.write(f'D{guide_row + i}', kw.get('description', ''), guide_item_format)
+            # 이 부분도 수정 - 문자열과 딕셔너리 모두 처리
+            if isinstance(kw, dict):
+                worksheet.write(f'C{guide_row + i}', f"• {kw.get('name', '')}", guide_item_format)
+                worksheet.write(f'D{guide_row + i}', kw.get('description', ''), guide_item_format)
+            else:
+                worksheet.write(f'C{guide_row + i}', f"• {kw}", guide_item_format)
+                worksheet.write(f'D{guide_row + i}', "", guide_item_format)
 
     # 행 높이 설정 - 차트 배치를 위한 공간 확보
     # 모든 행에 기본 높이 적용

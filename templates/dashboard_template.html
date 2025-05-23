@@ -124,19 +124,12 @@
         }
 
         .period-value {
-            font-size: 1.75rem;
+            font-size: 1.25rem;
             font-weight: 700;
             color: white;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             margin-bottom: 0.25rem;
             display: block;
-        }
-
-        .period-label {
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.9);
-            font-weight: 600;
-            margin: 0;
         }
 
         /* 총 주문건수 통계 */
@@ -158,19 +151,12 @@
         }
 
         .orders-value {
-            font-size: 1.75rem;
+            font-size: 1.25rem;
             font-weight: 700;
             color: white;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             margin-bottom: 0.25rem;
             display: block;
-        }
-
-        .orders-label {
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.9);
-            font-weight: 600;
-            margin: 0;
         }
 
         .chart-container {
@@ -261,6 +247,19 @@
         .chart-label {
             min-width: 280px;
             max-width: 280px;
+            font-size: 0.875rem;
+            color: #475569;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        /* 베스트셀러 차트용 긴 레이블 */
+        .chart-label-long {
+            min-width: 350px;
+            max-width: 350px;
             font-size: 0.875rem;
             color: #475569;
             font-weight: 500;
@@ -387,6 +386,12 @@
             .chart-label {
                 min-width: 200px;
                 max-width: 200px;
+                font-size: 0.75rem;
+            }
+            
+            .chart-label-long {
+                min-width: 250px;
+                max-width: 250px;
                 font-size: 0.75rem;
             }
             
@@ -526,11 +531,7 @@
                 <!-- 통합된 분석 기간 -->
                 <div class="period-unified">
                     <div class="period-value">📅 분석 기간: {{ subtitle }}</div>
-                </div>
-
-                <!-- 총 주문건수 -->
-                <div class="orders-stat">
-                    <div class="orders-value">🛍️ 여성의류 총 주문 건수: {{ total_orders }}</div>
+                    <div class="period-label"></div>
                 </div>
             </div>
         </div>
@@ -847,15 +848,15 @@
                     const productName = parts[1];
                     
                     // 브랜드명 + 축약된 상품명 (더 길게 표시)
-                    if (productName.length > 50) {
-                        return `${brand} / ${productName.substring(0, 50)}...`;
+                    if (productName.length > 70) {
+                        return `${brand} / ${productName.substring(0, 70)}...`;
                     }
                     return name;
                 }
                 
                 // 일반 상품명 축약 (더 길게 표시)
-                if (name.length > 55) {
-                    return name.substring(0, 55) + '...';
+                if (name.length > 75) {
+                    return name.substring(0, 75) + '...';
                 }
                 return name;
             }

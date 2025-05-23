@@ -8,7 +8,7 @@ from data.analyzer import BflowAnalyzer
 from data.data_processor.data_processor import DataProcessor
 from data.keyword_extractor import KeywordExtractor
 from output.dashboard_generator import DashboardGenerator
-from config.config import Config
+from config import Config
 from visualization.insights_formatter import InsightsFormatter
 
 __version__ = '2.0.0'

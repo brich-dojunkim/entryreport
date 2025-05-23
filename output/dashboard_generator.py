@@ -43,7 +43,7 @@ class DashboardGenerator(BaseGenerator):
         # 템플릿 핸들러
         self.template_handler = TemplateHandler(self.template_folder)
     
-    def generate_dashboard(self, port=None, open_browser=True, save_pdf=True):
+    def generate_dashboard(self, port=None, open_browser=True, save_pdf=True, pdf_width=1920):
         """
         HTML 대시보드 생성 및 실행
         
@@ -51,6 +51,7 @@ class DashboardGenerator(BaseGenerator):
         - port: 대시보드 실행 포트 (None이면 설정에서 가져옴)
         - open_browser: 브라우저 자동 실행 여부
         - save_pdf: PDF 파일 생성 여부
+        - pdf_width: PDF 너비 (픽셀, 기본값: 1920 - Full HD 모니터 기준)
         
         Returns:
         - 생성된 대시보드 파일 경로들의 딕셔너리 {'html': path, 'pdf': path}
@@ -119,11 +120,11 @@ class DashboardGenerator(BaseGenerator):
                 
                 # PDF 생성
                 if save_pdf:
-                    pdf_path = self.generate_pdf_from_html(html_path)
+                    pdf_path = self.generate_pdf_from_html(html_path, pdf_width)
                     if pdf_path:
                         result['pdf'] = str(pdf_path)
                         print(f"PDF 대시보드가 생성되었습니다: {pdf_path}")
-                        print("✅ 웹페이지 전체가 하나의 연속된 PDF로 저장되었습니다")
+                        print(f"✅ 화면 너비 {pdf_width}px 그대로 PDF 저장됨")
                 
                 # 브라우저에서 열기
                 if open_browser:
@@ -140,12 +141,13 @@ class DashboardGenerator(BaseGenerator):
             traceback.print_exc()
             return None
 
-    def generate_pdf_from_html(self, html_path):
+    def generate_pdf_from_html(self, html_path, pdf_width=1920):
         """
         HTML 파일을 PDF로 변환
         
         Parameters:
         - html_path: HTML 파일 경로
+        - pdf_width: PDF 너비 (픽셀)
         
         Returns:
         - 생성된 PDF 파일 경로
@@ -155,7 +157,7 @@ class DashboardGenerator(BaseGenerator):
             pdf_path = html_path.with_suffix('.pdf')
             
             # Playwright를 사용한 PDF 생성 시도
-            pdf_result = self._generate_pdf_with_playwright(html_path, pdf_path)
+            pdf_result = self._generate_pdf_with_playwright(html_path, pdf_path, pdf_width)
             
             if pdf_result:
                 return pdf_result
@@ -168,17 +170,17 @@ class DashboardGenerator(BaseGenerator):
             print(f"PDF 생성 중 오류 발생: {e}")
             return None
 
-    def _generate_pdf_with_playwright(self, html_path, pdf_path):
+    def _generate_pdf_with_playwright(self, html_path, pdf_path, pdf_width=1920):
         """
-        Playwright를 사용하여 웹페이지 전체를 하나의 PDF로 생성
+        Playwright를 사용하여 화면에 보이는 그대로의 너비로 PDF 생성
         """
         try:
             from playwright.sync_api import sync_playwright
             
             with sync_playwright() as p:
-                # 브라우저 시작 (더 큰 뷰포트 설정)
+                # 브라우저 시작 (지정된 너비로 뷰포트 설정)
                 browser = p.chromium.launch()
-                page = browser.new_page(viewport={'width': 1200, 'height': 800})
+                page = browser.new_page(viewport={'width': pdf_width, 'height': 1080})
                 
                 # HTML 파일 로드
                 page.goto(f"file://{html_path.resolve()}")
@@ -189,36 +191,55 @@ class DashboardGenerator(BaseGenerator):
                 # 차트가 렌더링될 시간을 줌
                 page.wait_for_timeout(3000)
                 
-                # 페이지의 실제 크기 측정
-                content_size = page.evaluate("""
+                # 페이지 분할 방지를 위한 추가 CSS 삽입
+                page.add_style_tag(content="""
+                    @media print {
+                        @page { 
+                            size: auto; 
+                            margin: 0; 
+                        }
+                        * { 
+                            page-break-inside: avoid !important;
+                            break-inside: avoid !important;
+                            page-break-before: avoid !important;
+                            page-break-after: avoid !important;
+                            break-before: avoid !important;
+                            break-after: avoid !important;
+                        }
+                        body { 
+                            margin: 0 !important; 
+                            padding: 0 !important;
+                        }
+                        .container-fluid {
+                            display: block !important;
+                            page-break-inside: avoid !important;
+                            break-inside: avoid !important;
+                        }
+                    }
+                """)
+                
+                # 페이지의 실제 높이만 측정 (너비는 뷰포트 그대로 사용)
+                content_height = page.evaluate("""
                     () => {
                         const body = document.body;
                         const html = document.documentElement;
-                        const height = Math.max(
+                        return Math.max(
                             body.scrollHeight,
                             body.offsetHeight,
                             html.clientHeight,
                             html.scrollHeight,
                             html.offsetHeight
                         );
-                        const width = Math.max(
-                            body.scrollWidth,
-                            body.offsetWidth,
-                            html.clientWidth,
-                            html.scrollWidth,
-                            html.offsetWidth
-                        );
-                        return { width, height };
                     }
                 """)
                 
-                print(f"페이지 크기: {content_size['width']}x{content_size['height']}px")
+                print(f"PDF 크기: {pdf_width}x{content_height}px (화면 너비 그대로)")
                 
-                # 웹페이지 전체를 하나의 PDF로 생성 (용지 크기를 콘텐츠에 맞춤)
+                # 화면에서 보는 그대로의 너비로 PDF 생성 (페이지 분할 없음)
                 page.pdf(
                     path=str(pdf_path),
-                    width=f"{content_size['width']}px",
-                    height=f"{content_size['height']}px",
+                    width=f"{pdf_width}px",
+                    height=f"{content_height}px",
                     print_background=True,
                     margin={
                         'top': '0px',
@@ -226,7 +247,9 @@ class DashboardGenerator(BaseGenerator):
                         'left': '0px',
                         'right': '0px'
                     },
-                    prefer_css_page_size=False  # CSS 페이지 크기 무시
+                    prefer_css_page_size=False,
+                    display_header_footer=False,
+                    scale=1.0
                 )
                 
                 browser.close()
@@ -251,7 +274,7 @@ class DashboardGenerator(BaseGenerator):
             with open(html_path, 'r', encoding='utf-8') as f:
                 html_content = f.read()
             
-            # 페이지 분할을 방지하는 CSS 추가
+            # 페이지 분할을 강력하게 방지하는 CSS 추가
             additional_css = CSS(string="""
                 @page {
                     size: auto;
@@ -261,21 +284,40 @@ class DashboardGenerator(BaseGenerator):
                 body {
                     margin: 0;
                     padding: 20px;
+                    min-height: 100vh;
                 }
                 
+                /* 모든 요소에 페이지 분할 방지 */
                 * {
                     page-break-inside: avoid !important;
                     break-inside: avoid !important;
+                    page-break-before: avoid !important;
+                    page-break-after: avoid !important;
+                    break-before: avoid !important;
+                    break-after: avoid !important;
                 }
                 
+                /* 특정 컨테이너들 강력 보호 */
+                .dashboard-header,
                 .chart-container,
                 .keywords-container,
-                .dashboard-header {
+                .row,
+                .col-lg-6,
+                .custom-chart,
+                .keywords-grid,
+                .keyword-section,
+                .info-container {
                     page-break-inside: avoid !important;
                     break-inside: avoid !important;
+                    page-break-before: avoid !important;
+                    page-break-after: avoid !important;
+                    break-before: avoid !important;
+                    break-after: avoid !important;
                 }
                 
-                .row {
+                /* 전체 문서를 하나의 블록으로 처리 */
+                .container-fluid {
+                    display: block !important;
                     page-break-inside: avoid !important;
                     break-inside: avoid !important;
                 }

@@ -403,7 +403,7 @@
         @media print {
             @page {
                 size: auto;
-                margin: 10mm;
+                margin: 0;
             }
             
             body {
@@ -412,14 +412,24 @@
                 color-adjust: exact;
             }
             
+            /* 모든 요소에 페이지 분할 방지 적용 */
+            * {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                page-break-before: avoid !important;
+                page-break-after: avoid !important;
+                break-before: avoid !important;
+                break-after: avoid !important;
+            }
+            
             .dashboard-header {
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
                 -webkit-print-color-adjust: exact;
                 color-adjust: exact;
                 box-shadow: none;
                 border: 2px solid #667eea;
-                page-break-inside: avoid;
-                break-inside: avoid;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
             
             .dashboard-title {
@@ -434,8 +444,8 @@
                 border: 2px solid rgba(255, 215, 0, 0.6) !important;
                 -webkit-print-color-adjust: exact;
                 color-adjust: exact;
-                page-break-inside: avoid;
-                break-inside: avoid;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
             
             .period-value,
@@ -451,8 +461,8 @@
             .keywords-container {
                 box-shadow: none;
                 border: 1px solid #e2e8f0;
-                page-break-inside: avoid;
-                break-inside: avoid;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
                 margin-bottom: 1rem;
             }
             
@@ -463,35 +473,43 @@
             }
             
             .row {
-                page-break-inside: avoid;
-                break-inside: avoid;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
             
             .col-lg-6 {
-                page-break-inside: avoid;
-                break-inside: avoid;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
             
-            /* 차트 내용들이 잘리지 않도록 */
             .custom-chart {
-                page-break-inside: avoid;
-                break-inside: avoid;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
             
             .chart-item {
-                page-break-inside: avoid;
-                break-inside: avoid;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
             
-            /* 키워드 섹션이 잘리지 않도록 */
             .keywords-grid {
-                page-break-inside: avoid;
-                break-inside: avoid;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
             
             .keyword-section {
-                page-break-inside: avoid;
-                break-inside: avoid;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            
+            .info-container {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            
+            .container-fluid {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
         }
     </style>
@@ -501,7 +519,7 @@
         <div class="dashboard-header">
             <h1 class="dashboard-title">
                 <i class="bi bi-graph-up-arrow"></i>
-                상품 판매 분석 대시보드
+                비플로우 상품 판매 분석 대시보드
             </h1>
             
             <div class="info-container">
